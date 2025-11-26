@@ -95,7 +95,7 @@ cp psql_files/psql/pass/avocado /usr/local/etc/ssl/private/ssl_passphrase.sh
 chmod 700 /usr/local/etc/ssl/private/ssl_passphrase.sh
 
 # Copy your custom PostgreSQL config
-cp psql_files/psql/postgresql.conf "$PG_CONF_PATH"
+cp psql_files/postgresql.conf "$PG_CONF_PATH"
 
 echo "[INFO] SSL and config setup complete"
 
