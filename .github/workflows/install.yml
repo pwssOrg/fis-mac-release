@@ -1,18 +1,20 @@
 name: Install FIS
 
 on:
-  push:
-    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
   run-install:
     runs-on: macos-latest
+    env:
+      DB_USER: integrity
+      DB_PASSWORD: integrity123
+      INSTALL_JAVA: false
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install FIS
+      - name: Run Installer
         run: |
           chmod +x ./install_integrity_hash_macos.sh
           ./install_integrity_hash_macos.sh
