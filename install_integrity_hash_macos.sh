@@ -57,7 +57,7 @@ if ! command -v psql &>/dev/null; then
 fi
 
 echo "[INFO] Starting PostgreSQL service"
-brew services restart postgresql || true
+brew services restart postgresql@17 || true
 sleep 5
 
 PG_VERSION=$(psql --version | awk '{print $3}' | cut -d. -f1)
