@@ -117,37 +117,117 @@ sleep 5
 # ====================================================================
 # DATABASE USER AND DATABASE SETUP
 # ====================================================================
+
+
+PSQL_CONN="psql -p $PORT -d postgres -tAc"
+
 echo "[INFO] Creating database user and database if they do not exist..."
 
-psql -p 26556 -d "$DB_NAME" -tc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" | grep -q 1 ||
-  psql -p 26556 -c "CREATE ROLE \"$DB_USER\" LOGIN PASSWORD '$DB_PASSWORD';"
 
-psql -p 26556 -d "$DB_NAME" -tc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1 ||
-  createdb -O "$DB_USER" "$DB_NAME"
+$PSQL_CONN "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" | grep -q 1 ||
+  $PSQL_CONN "CREATE ROLE \"$DB_USER\" LOGIN PASSWORD '$DB_PASSWORD';"
+
+
+$PSQL_CONN "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1 ||
+  $PSQL_CONN "CREATE DATABASE \"$DB_NAME\" OWNER \"$DB_USER\";"
 
 # ====================================================================
 # CREATE TABLES
 # ====================================================================
-echo "[INFO] Creating tables..."
 
-psql -p 26556 -d "$DB_NAME" <<'EOF'
-CREATE TABLE IF NOT EXISTS "time"(id BIGSERIAL PRIMARY KEY, created TIMESTAMPTZ NOT NULL, updated TIMESTAMPTZ NOT NULL);
-CREATE TABLE IF NOT EXISTS note(id BIGSERIAL PRIMARY KEY, notes TEXT, prev_notes TEXT, prev_prev_notes TEXT, time_id bigint NOT NULL REFERENCES "time"(id));
-CREATE TABLE IF NOT EXISTS file(id BIGSERIAL PRIMARY KEY, path TEXT NOT NULL UNIQUE, basename TEXT NOT NULL, directory TEXT NOT NULL, size bigint NOT NULL, mtime TIMESTAMPTZ NOT NULL);
-CREATE TABLE IF NOT EXISTS checksum(id BIGSERIAL PRIMARY KEY, file_id bigint NOT NULL REFERENCES file(id), checksum_sha256 TEXT NOT NULL, checksum_sha3 TEXT NOT NULL, checksum_blake_2b TEXT NOT NULL);
-CREATE TABLE IF NOT EXISTS monitored_directory(id SERIAL PRIMARY KEY, path TEXT NOT NULL UNIQUE, is_active BOOLEAN NOT NULL DEFAULT TRUE, time_id bigint NOT NULL REFERENCES "time"(id), last_scanned TIMESTAMPTZ, note_id bigint NOT NULL REFERENCES note(id), baseline_established BOOLEAN NOT NULL DEFAULT FALSE, include_subdirectories BOOLEAN NOT NULL DEFAULT TRUE);
-CREATE TABLE IF NOT EXISTS scan(id SERIAL PRIMARY KEY, scan_time_id bigint NOT NULL REFERENCES "time"(id), status TEXT NOT NULL, note_id bigint NOT NULL REFERENCES note(id), monitored_directory_id INTEGER NOT NULL REFERENCES monitored_directory(id), is_baseline_scan BOOLEAN NOT NULL);
-CREATE TABLE IF NOT EXISTS scan_summary(id BIGSERIAL PRIMARY KEY, scan_id INTEGER NOT NULL REFERENCES scan(id), file_id bigint NOT NULL REFERENCES file(id), checksum_id bigint NOT NULL REFERENCES checksum(id));
-CREATE TABLE IF NOT EXISTS diff(id BIGSERIAL PRIMARY KEY, baseline_id bigint NOT NULL REFERENCES scan_summary(id), integrity_fail_id bigint NOT NULL REFERENCES scan_summary(id), time_id bigint NOT NULL REFERENCES "time"(id));
-CREATE TABLE IF NOT EXISTS auth(id SERIAL PRIMARY KEY, hash TEXT NOT NULL, auth_time bigint REFERENCES "time"(id) NOT NULL);
-CREATE TABLE IF NOT EXISTS "user_"(id SERIAL PRIMARY KEY, username TEXT UNIQUE NOT NULL, auth_id int REFERENCES auth(id) NOT NULL, user_time bigint REFERENCES "time"(id) NOT NULL);
-CREATE TABLE IF NOT EXISTS license(id INT PRIMARY KEY, license_data TEXT);
+echo "[INFO] Creating tables in database '$DB_NAME'..."
+
+psql -p $PORT -d "$DB_NAME" <<'EOF'
+CREATE TABLE IF NOT EXISTS "time"(
+    id BIGSERIAL PRIMARY KEY,
+    created TIMESTAMPTZ NOT NULL,
+    updated TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS note(
+    id BIGSERIAL PRIMARY KEY,
+    notes TEXT,
+    prev_notes TEXT,
+    prev_prev_notes TEXT,
+    time_id bigint NOT NULL REFERENCES "time"(id)
+);
+
+CREATE TABLE IF NOT EXISTS file(
+    id BIGSERIAL PRIMARY KEY,
+    path TEXT NOT NULL UNIQUE,
+    basename TEXT NOT NULL,
+    directory TEXT NOT NULL,
+    size bigint NOT NULL,
+    mtime TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS checksum(
+    id BIGSERIAL PRIMARY KEY,
+    file_id bigint NOT NULL REFERENCES file(id),
+    checksum_sha256 TEXT NOT NULL,
+    checksum_sha3 TEXT NOT NULL,
+    checksum_blake_2b TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS monitored_directory(
+    id SERIAL PRIMARY KEY,
+    path TEXT NOT NULL UNIQUE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    time_id bigint NOT NULL REFERENCES "time"(id),
+    last_scanned TIMESTAMPTZ,
+    note_id bigint NOT NULL REFERENCES note(id),
+    baseline_established BOOLEAN NOT NULL DEFAULT FALSE,
+    include_subdirectories BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS scan(
+    id SERIAL PRIMARY KEY,
+    scan_time_id bigint NOT NULL REFERENCES "time"(id),
+    status TEXT NOT NULL,
+    note_id bigint NOT NULL REFERENCES note(id),
+    monitored_directory_id INTEGER NOT NULL REFERENCES monitored_directory(id),
+    is_baseline_scan BOOLEAN NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS scan_summary(
+    id BIGSERIAL PRIMARY KEY,
+    scan_id INTEGER NOT NULL REFERENCES scan(id),
+    file_id bigint NOT NULL REFERENCES file(id),
+    checksum_id bigint NOT NULL REFERENCES checksum(id)
+);
+
+CREATE TABLE IF NOT EXISTS diff(
+    id BIGSERIAL PRIMARY KEY,
+    baseline_id bigint NOT NULL REFERENCES scan_summary(id),
+    integrity_fail_id bigint NOT NULL REFERENCES scan_summary(id),
+    time_id bigint NOT NULL REFERENCES "time"(id)
+);
+
+CREATE TABLE IF NOT EXISTS auth(
+    id SERIAL PRIMARY KEY,
+    hash TEXT NOT NULL,
+    auth_time bigint REFERENCES "time"(id) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "user_"(
+    id SERIAL PRIMARY KEY,
+    username TEXT UNIQUE NOT NULL,
+    auth_id int REFERENCES auth(id) NOT NULL,
+    user_time bigint REFERENCES "time"(id) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS license(
+    id INT PRIMARY KEY,
+    license_data TEXT
+);
+
 INSERT INTO license(id,license_data) VALUES
-(1,'331cd7b3ce491feda6e855dcbf5de4dec5d5211e7776c8e7da4a91026ddab7b7'),
-(2,'71b16c484b415c32e6139f95d7276ea351228fbef0af5f7dcbd8bff0484b59b5')
+    (1,'331cd7b3ce491feda6e855dcbf5de4dec5d5211e7776c8e7da4a91026ddab7b7'),
+    (2,'71b16c484b415c32e6139f95d7276ea351228fbef0af5f7dcbd8bff0484b59b5')
 ON CONFLICT DO NOTHING;
 EOF
 
+echo "[INFO] Database setup complete!"
 # ====================================================================
 # OPTIONAL EXECUTION PERMISSIONS (COMMENTED)
 # ====================================================================
