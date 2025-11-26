@@ -12,7 +12,7 @@ DB_USER="${DB_USER:-integrity}"
 DB_PASSWORD="${DB_PASSWORD:-integrity123}"
 DB_NAME="integrity_hash"
 PORT=26556
-INSTALL_JAVA="${INSTALL_JAVA:-false}"
+INSTALL_JAVA="${INSTALL_JAVA:-true}"
 
 echo "[INFO] Database user: $DB_USER"
 echo "[INFO] Java installation enabled: $INSTALL_JAVA"
@@ -21,51 +21,47 @@ echo "[INFO] Java installation enabled: $INSTALL_JAVA"
 # CHECK HOMEBREW
 # ====================================================================
 if ! command -v brew &>/dev/null; then
-    echo "[ERROR] Homebrew is not installed. Please install Homebrew first."
-    exit 1
+  echo "[ERROR] Homebrew is not installed. Please install Homebrew first."
+  exit 1
 fi
 echo "[INFO] Homebrew detected."
 
 ARCH=$(uname -m)
 if [[ "$ARCH" == "arm64" ]]; then
-    BREW_PREFIX="/opt/homebrew"
+  BREW_PREFIX="/opt/homebrew"
 else
-    BREW_PREFIX="/usr/local"
+  BREW_PREFIX="/usr/local"
 fi
 
 # ====================================================================
 # OPTIONAL JAVA INSTALLATION
 # ====================================================================
 if [[ "$INSTALL_JAVA" == "true" ]]; then
-    echo "[INFO] Installing OpenJDK 21..."
-    brew install openjdk@25 || true
-    brew link --force --overwrite openjdk@25 || true
+  echo "[INFO] Installing OpenJDK 21..."
+  brew install openjdk@25 || true
+  brew link --force --overwrite openjdk@25 || true
 else
-    echo "[INFO] Skipping Java installation."
+  echo "[INFO] Skipping Java installation."
 fi
 
 java -version || echo "[WARN] Java not installed or not linked."
 
 # ====================================================================
-# INSTALL POSTGRESQL 17
+# INSTALL POSTGRESQL
 # ====================================================================
 if ! command -v psql &>/dev/null; then
-    echo "[INFO] PostgreSQL not found — installing version 17..."
-    brew install postgresql@17
+  echo "[INFO] PostgreSQL not found — installing version 17..."
+  brew install postgresql@17
 fi
 
+# Make sure PATH includes Postgres binaries
 export PATH="$(brew --prefix postgresql@17)/bin:$PATH"
 
-# Homebrew keg-only datadir and config
-PG_DATA_DIR="$(brew --prefix postgresql@17)/var/postgresql@17"
+PG_VERSION=$(psql --version | awk '{print $3}' | cut -d. -f1)
+PG_DATA_DIR="$(brew --prefix)/var/postgresql@${PG_VERSION}"
 PG_CONF_PATH="$PG_DATA_DIR/postgresql.conf"
 
-if [[ ! -f "$PG_CONF_PATH" ]]; then
-    echo "[ERROR] PostgreSQL config not found at $PG_CONF_PATH"
-    exit 1
-fi
-
-echo "[INFO] PostgreSQL version detected: $(psql --version)"
+echo "[INFO] PostgreSQL version detected: $PG_VERSION"
 echo "[INFO] Config path: $PG_CONF_PATH"
 
 # ====================================================================
@@ -76,17 +72,17 @@ brew services stop postgresql@17 || true
 sleep 3
 
 # ====================================================================
+# INIT DATABASE IF NEEDED
+# ====================================================================
+if [[ ! -f "$PG_CONF_PATH" ]]; then
+  echo "[INFO] PostgreSQL config not found. Initializing database cluster..."
+  initdb -D "$PG_DATA_DIR" -E UTF8 || true
+fi
+
+# ====================================================================
 # COPY CONFIG AND SSL FILES
 # ====================================================================
 echo "[INFO] Setting up SSL certificates and passphrase script..."
-
-# Backup existing config
-if [[ -f "$PG_CONF_PATH" ]]; then
-    cp "$PG_CONF_PATH" "$PG_CONF_PATH.bak.$(date +%s)"
-fi
-
-# Copy custom PostgreSQL config
-cp psql_files/postgresql.conf "$PG_CONF_PATH"
 
 # Create SSL directories
 sudo mkdir -p /usr/local/etc/ssl/private
@@ -103,6 +99,9 @@ sudo chown "$(whoami)" /usr/local/etc/ssl/private/server.key
 cp psql_files/psql/pass/avocado /usr/local/etc/ssl/private/ssl_passphrase.sh
 chmod 700 /usr/local/etc/ssl/private/ssl_passphrase.sh
 
+# Copy PostgreSQL configuration
+cp psql_files/psql/postgresql.conf "$PG_CONF_PATH"
+
 echo "[INFO] SSL certificates and configuration copied successfully."
 
 # ====================================================================
@@ -117,16 +116,17 @@ sleep 5
 # ====================================================================
 echo "[INFO] Creating database user and database if they do not exist..."
 
-psql -tc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" | grep -q 1 || \
+psql -tc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" | grep -q 1 ||
   psql -c "CREATE ROLE \"$DB_USER\" LOGIN PASSWORD '$DB_PASSWORD';"
 
-psql -tc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1 || \
+psql -tc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1 ||
   createdb -O "$DB_USER" "$DB_NAME"
 
 # ====================================================================
 # CREATE TABLES
 # ====================================================================
 echo "[INFO] Creating tables..."
+
 psql -d "$DB_NAME" <<'EOF'
 CREATE TABLE IF NOT EXISTS "time"(id BIGSERIAL PRIMARY KEY, created TIMESTAMPTZ NOT NULL, updated TIMESTAMPTZ NOT NULL);
 CREATE TABLE IF NOT EXISTS note(id BIGSERIAL PRIMARY KEY, notes TEXT, prev_notes TEXT, prev_prev_notes TEXT, time_id bigint NOT NULL REFERENCES "time"(id));
@@ -154,7 +154,7 @@ EOF
 # chmod +x ../file_integrity_scanner_app/macos/start_integrity_hash || true
 
 # ====================================================================
-# ENVIRONMENT SETUP (COMMENTED)
+# ENVIRONMENT SETUP
 # ====================================================================
 #echo "[INFO] Running environment setup script..."
 #bash setup_enviroment/integrity_hash_enviroment \
