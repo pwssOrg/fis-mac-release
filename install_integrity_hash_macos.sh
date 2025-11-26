@@ -1,10 +1,24 @@
 #!/bin/bash
 set -euo pipefail
 
+# ======================================================
+# PWSS Integrity Hash Installer – macOS (CI Mode)
+# ======================================================
+# Run locally with custom DB credentials:
+# Lokalt: DB_USER=myuser DB_PASSWORD=mypassword ./install_integrity_hash_macos.sh
+#
+# Script version: 1.0.0
+# PostgreSQL target version: 17
+# ======================================================
+
+SCRIPT_VERSION="1.0.0"
+PG_TARGET_VERSION="17"
+
 echo "======================================================"
 echo " PWSS Integrity Hash Installer – macOS (CI Mode)"
+echo " Script version: $SCRIPT_VERSION"
+echo " PostgreSQL target version: $PG_TARGET_VERSION"
 echo "======================================================"
-
 # ====================================================================
 # SETTINGS FROM ENV OR DEFAULTS
 # ====================================================================
