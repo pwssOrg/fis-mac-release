@@ -1,18 +1,18 @@
 name: Install FIS
 
 on:
-    push:
-        branches: [ "main" ]
-    workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
 
 jobs:
-    run-install:
-        runs-on: macOS
+  run-install:
+    runs-on: macos-latest
 
-        steps:
-            - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-            - name: Install FIS
-                run: |
-                    chmod +x ./install_integrity_hash_macos.sh
-                    ./install_integrity_hash_macos.sh
+      - name: Install FIS
+        run: |
+          chmod +x ./install_integrity_hash_macos.sh
+          ./install_integrity_hash_macos.sh
