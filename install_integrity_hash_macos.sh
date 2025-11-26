@@ -97,7 +97,7 @@ sudo chown "$(whoami)" /usr/local/etc/ssl/private/server.key
 
 # Copy passphrase script and make executable
 cp psql_files/psql/pass/avocado /usr/local/etc/ssl/private/ssl_passphrase.sh
-chmod 700 /usr/local/etc/ssl/private/ssl_passphrase.sh
+chmod +x /usr/local/etc/ssl/private/ssl_passphrase.sh
 
 # Copy PostgreSQL configuration
 cp psql_files/psql/postgresql.conf "$PG_CONF_PATH"
