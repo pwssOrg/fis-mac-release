@@ -14,5 +14,5 @@ jobs:
 
             - name: Install FIS
                 run: |
-                    chmod +x ./install_macos
+                    chmod +x ./install_integrity_hash_macos.sh
                     ./install_integrity_hash_macos.sh
