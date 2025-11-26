@@ -54,6 +54,7 @@ java -version || echo "[WARN] Java not installed"
 if ! command -v psql &>/dev/null; then
   echo "[INFO] PostgreSQL not found — installing"
   brew install postgresql@17
+  export PATH="$(brew --prefix postgresql@17)/bin:$PATH"
 fi
 
 echo "[INFO] Starting PostgreSQL service"
