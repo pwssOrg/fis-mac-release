@@ -11,7 +11,7 @@ echo "======================================================"
 DB_USER="${DB_USER:-integrity}"
 DB_PASSWORD="${DB_PASSWORD:-integrity123}"
 DB_NAME="integrity_hash"
-PORT=5432
+PORT=26556
 INSTALL_JAVA="${INSTALL_JAVA:-false}"
 
 echo "[INFO] DB_USER=$DB_USER"
@@ -57,39 +57,54 @@ if ! command -v psql &>/dev/null; then
   export PATH="$(brew --prefix postgresql@17)/bin:$PATH"
 fi
 
-echo "[INFO] Starting PostgreSQL service"
-brew services restart postgresql@17 || true
-sleep 5
-
 PG_VERSION=$(psql --version | awk '{print $3}' | cut -d. -f1)
 PG_CONF_PATH="$PG_ETC_DIR/postgresql@${PG_VERSION}/postgresql.conf"
-
-echo "[INFO] PostgreSQL version: ${PG_VERSION}"
-echo "[INFO] Config: ${PG_CONF_PATH}"
 
 if [[ ! -f "$PG_CONF_PATH" ]]; then
   echo "[ERROR] PostgreSQL config not found"
   exit 1
 fi
+echo "[INFO] PostgreSQL version: ${PG_VERSION}"
+echo "[INFO] Config path: ${PG_CONF_PATH}"
 
 # ====================================================================
-# SSL CERTS
+# STOP POSTGRES (if running)
 # ====================================================================
-echo "[INFO] Copying SSL certificates"
+echo "[INFO] Stopping PostgreSQL if already running"
+brew services stop postgresql@17 || true
+sleep 3
+
+# ====================================================================
+# COPY CONFIG FILE AND SSL FILES
+# ====================================================================
+echo "[INFO] Copying SSL certificates and passphrase script"
+
+# SSL directories
 sudo mkdir -p /usr/local/etc/ssl/private
-sudo cp psql_files/psql/cert/p_avocado.crt /usr/local/etc/ssl/
-sudo cp psql_files/psql/cert/p_avocado.key /usr/local/etc/ssl/private/
-sudo chmod 600 /usr/local/etc/ssl/private/p_avocado.key
-sudo chown "$(whoami)" /usr/local/etc/ssl/private/p_avocado.key
 
-echo "[INFO] Configuring SSL"
-sed -i '' "s|ssl = off|ssl = on|g" "$PG_CONF_PATH"
-sed -i '' "s|#ssl_cert_file =.*|ssl_cert_file = '/usr/local/etc/ssl/p_avocado.crt'|g" "$PG_CONF_PATH"
-sed -i '' "s|#ssl_key_file =.*|ssl_key_file = '/usr/local/etc/ssl/private/p_avocado.key'|g" "$PG_CONF_PATH"
+# Copy certificate and key
+sudo cp psql_files/psql/cert/server.crt /usr/local/etc/ssl/
+sudo cp psql_files/psql/cert/server.key /usr/local/etc/ssl/private/
 
-echo "[INFO] Restarting PostgreSQL"
-brew services restart postgresql
-sleep 4
+# Set secure permissions
+sudo chmod 600 /usr/local/etc/ssl/private/server.key
+sudo chown "$(whoami)" /usr/local/etc/ssl/private/server.key
+
+# Copy passphrase script and make executable
+cp psql_files/psql/pass/avocado /usr/local/etc/ssl/private/ssl_passphrase.sh
+chmod 700 /usr/local/etc/ssl/private/ssl_passphrase.sh
+
+# Copy your custom PostgreSQL config
+cp psql_files/psql/postgresql.conf "$PG_CONF_PATH"
+
+echo "[INFO] SSL and config setup complete"
+
+# ====================================================================
+# START POSTGRES WITH NEW CONFIG
+# ====================================================================
+echo "[INFO] Starting PostgreSQL with SSL and custom config"
+brew services restart postgresql@17
+sleep 5
 
 # ====================================================================
 # DATABASE SETUP
@@ -128,15 +143,17 @@ EOF
 # ====================================================================
 # PERMISSIONS + ENV
 # ====================================================================
-echo "[INFO] Setting execution permissions"
-chmod +x setup_enviroment/integrity_hash_enviroment || true
-chmod +x ../file_integrity_scanner_app/macos/start_integrity_hash || true
 
-echo "[INFO] Running environment setup"
-bash setup_enviroment/integrity_hash_enviroment \
-  "$(pwd)/../file_integrity_scanner_app/" \
-  "$DB_USER" "$DB_PASSWORD" \
-  "truststore_mock_value" "ssl_mock_value"
+## Keep commented until packaging strategy is finalized
+# echo "[INFO] Setting execution permissions"
+# chmod +x setup_enviroment/integrity_hash_enviroment || true
+# chmod +x ../file_integrity_scanner_app/macos/start_integrity_hash || true
+
+#echo "[INFO] Running environment setup"
+#bash setup_enviroment/integrity_hash_enviroment \
+  #"$(pwd)/../file_integrity_scanner_app/" \
+  #"$DB_USER" "$DB_PASSWORD" \
+  #"truststore_mock_value" "ssl_mock_value"
 
 echo "======================================================"
 echo " INSTALLATION COMPLETE!"
