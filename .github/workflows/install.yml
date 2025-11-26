@@ -6,11 +6,9 @@ on:
 jobs:
     run-install:
         runs-on: macOS
-        permissions:
-            contents: read
+        
         steps:
-            - name: Checkout
-                uses: actions/checkout@v4
+            - uses: actions/checkout@v4
 
             - name: Install FIS
                 run: |
