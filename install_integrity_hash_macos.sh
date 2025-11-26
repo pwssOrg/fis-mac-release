@@ -88,17 +88,17 @@ echo "[INFO] Setting up SSL certificates and passphrase script..."
 sudo mkdir -p /usr/local/etc/ssl/private
 
 # Copy certificate and key
-sudo cp psql_files/psql/cert/server.crt /usr/local/etc/ssl/
-sudo cp psql_files/psql/cert/server.key /usr/local/etc/ssl/private/
+sudo cp psql_files/psql/cert/server.crt "$PG_DATA_DIR/server.crt"
+sudo cp psql_files/psql/cert/server.key "$PG_DATA_DIR/server.key"
 
 # Set secure permissions for key
-sudo chmod 600 /usr/local/etc/ssl/private/server.key
-sudo chown "$(whoami)" /usr/local/etc/ssl/private/server.key
+sudo chmod 600 "$PG_DATA_DIR/server.key"
+sudo chown "$(whoami)" "$PG_DATA_DIR/server.key"
 
 # Copy passphrase script with sudo and make executable
-sudo cp psql_files/psql/pass/avocado /usr/local/etc/ssl/private/ssl_passphrase.sh
-sudo chmod 700 /usr/local/etc/ssl/private/ssl_passphrase.sh
-sudo chown "$(whoami)" /usr/local/etc/ssl/private/ssl_passphrase.sh
+sudo cp psql_files/psql/pass/avocado "$PG_DATA_DIR/ssl_passphrase.sh"
+sudo chmod 700 "$PG_DATA_DIR/ssl_passphrase.sh"
+sudo chown "$(whoami)" "$PG_DATA_DIR/ssl_passphrase.sh"
 
 # Copy PostgreSQL configuration
 cp psql_files/postgresql.conf "$PG_CONF_PATH"
