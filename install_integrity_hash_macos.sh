@@ -109,7 +109,9 @@ echo "[INFO] SSL certificates and configuration copied successfully."
 # START POSTGRESQL
 # ====================================================================
 echo "[INFO] Starting PostgreSQL with new configuration..."
-brew services restart postgresql@17
+#brew services restart postgresql@17
+LC_ALL="en_US.UTF-8" /opt/homebrew/opt/postgresql@17/bin/postgres \
+  -D /opt/homebrew/var/postgresql@17 -p 26556 &
 sleep 5
 
 # ====================================================================
