@@ -37,7 +37,7 @@ fi
 # OPTIONAL JAVA INSTALLATION
 # ====================================================================
 if [[ "$INSTALL_JAVA" == "true" ]]; then
-  echo "[INFO] Installing OpenJDK 21..."
+  echo "[INFO] Installing OpenJDK 25..."
   brew install openjdk@25 || true
   brew link --force --overwrite openjdk@25 || true
 else
