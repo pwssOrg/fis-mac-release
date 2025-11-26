@@ -12,7 +12,7 @@ DB_USER="${DB_USER:-integrity}"
 DB_PASSWORD="${DB_PASSWORD:-integrity123}"
 DB_NAME="integrity_hash"
 PORT=26556
-INSTALL_JAVA="${INSTALL_JAVA:-true}"
+INSTALL_JAVA="${INSTALL_JAVA:-false}"
 
 echo "[INFO] Database user: $DB_USER"
 echo "[INFO] Java installation enabled: $INSTALL_JAVA"
