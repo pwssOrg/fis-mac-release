@@ -117,10 +117,10 @@ sleep 5
 # ====================================================================
 echo "[INFO] Creating database user and database if they do not exist..."
 
-psql -tc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" | grep -q 1 ||
-  psql -c "CREATE ROLE \"$DB_USER\" LOGIN PASSWORD '$DB_PASSWORD';"
+psql -p 26556 -tc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" | grep -q 1 ||
+  psql -p 26556 -c "CREATE ROLE \"$DB_USER\" LOGIN PASSWORD '$DB_PASSWORD';"
 
-psql -tc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1 ||
+psql -p 26556 -tc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1 ||
   createdb -O "$DB_USER" "$DB_NAME"
 
 # ====================================================================
@@ -128,7 +128,7 @@ psql -tc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1 ||
 # ====================================================================
 echo "[INFO] Creating tables..."
 
-psql -d "$DB_NAME" <<'EOF'
+psql -p 26556 -d "$DB_NAME" <<'EOF'
 CREATE TABLE IF NOT EXISTS "time"(id BIGSERIAL PRIMARY KEY, created TIMESTAMPTZ NOT NULL, updated TIMESTAMPTZ NOT NULL);
 CREATE TABLE IF NOT EXISTS note(id BIGSERIAL PRIMARY KEY, notes TEXT, prev_notes TEXT, prev_prev_notes TEXT, time_id bigint NOT NULL REFERENCES "time"(id));
 CREATE TABLE IF NOT EXISTS file(id BIGSERIAL PRIMARY KEY, path TEXT NOT NULL UNIQUE, basename TEXT NOT NULL, directory TEXT NOT NULL, size bigint NOT NULL, mtime TIMESTAMPTZ NOT NULL);
