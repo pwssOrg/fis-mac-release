@@ -119,10 +119,10 @@ sleep 5
 # ====================================================================
 echo "[INFO] Creating database user and database if they do not exist..."
 
-psql -p 26556 -tc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" | grep -q 1 ||
+psql -p 26556 -d "$DB_NAME" -tc "SELECT 1 FROM pg_roles WHERE rolname='$DB_USER'" | grep -q 1 ||
   psql -p 26556 -c "CREATE ROLE \"$DB_USER\" LOGIN PASSWORD '$DB_PASSWORD';"
 
-psql -p 26556 -tc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1 ||
+psql -p 26556 -d "$DB_NAME" -tc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1 ||
   createdb -O "$DB_USER" "$DB_NAME"
 
 # ====================================================================
