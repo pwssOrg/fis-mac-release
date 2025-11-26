@@ -1,12 +1,14 @@
 name: Install FIS
 
 on:
+    push:
+        branches: [ "main" ]
     workflow_dispatch:
 
 jobs:
     run-install:
         runs-on: macOS
-        
+
         steps:
             - uses: actions/checkout@v4
 
