@@ -9,7 +9,7 @@ jobs:
     env:
       DB_USER: integrity
       DB_PASSWORD: integrity123
-      INSTALL_JAVA: false
+      INSTALL_JAVA: true
 
     steps:
       - uses: actions/checkout@v4
