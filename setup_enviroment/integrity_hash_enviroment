@@ -48,3 +48,8 @@ echo "[INFO] Adding new environment variables..."
 
 echo "[INFO] Done. Reload your terminal or run:"
 echo "source ~/.zshrc"
+
+echo $INTEGRITY_HASH_DB_USER
+echo $INTEGRITY_HASH_DB_PASSWORD
+echo $TRUSTSTORE_FIS_GUI
+echo $ssl_file_integrity_scanner
