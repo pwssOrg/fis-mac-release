@@ -1,4 +1,4 @@
-name: Build DMG
+name: Build IntegrityHash DMG
 
 on:
   workflow_dispatch:
@@ -11,39 +11,41 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Make script executable
+      - name: Make start script executable
         run: chmod +x file_integrity_scanner_app/macos/start_integrity_hash
 
-      - name: Create App bundle
+      - name: Create App bundle with Info.plist and icon
         run: |
-          mkdir -p IntegrityHashApp
-          cp file_integrity_scanner_app/macos/start_integrity_hash IntegrityHashApp/
-
-          # Skapa minimal .app bundle
+          # Create folder structure for .app
           mkdir -p IntegrityHash.app/Contents/MacOS
-          echo '#!/bin/bash
-          cd "$(dirname "$0")"
-          ./start_integrity_hash' > IntegrityHash.app/Contents/MacOS/IntegrityHash
+          mkdir -p IntegrityHash.app/Contents/Resources
+
+          # Copy start script into app folder
+          cp file_integrity_scanner_app/macos/start_integrity_hash IntegrityHash.app/Contents/MacOS/IntegrityHash
           chmod +x IntegrityHash.app/Contents/MacOS/IntegrityHash
 
-          # Lägg till Info.plist för macOS med literal block för att undvika YAML problem
-          mkdir -p IntegrityHash.app/Contents
-          cat > IntegrityHash.app/Contents/Info.plist <<'EOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>CFBundleName</key>
-  <string>IntegrityHash</string>
-  <key>CFBundleIdentifier</key>
-  <string>com.example.integrityhash</string>
-  <key>CFBundleVersion</key>
-  <string>1.0</string>
-  <key>CFBundleExecutable</key>
-  <string>IntegrityHash</string>
-</dict>
-</plist>
-EOF
+          # Copy icon for app
+          cp file_integrity_scanner_app/macos/MyIcon.icns IntegrityHash.app/Contents/Resources/MyIcon.icns
+
+
+
+          cat <<EOF > ~/.m2/settings.xml
+          <?xml version="1.0" encoding="UTF-8"?>
+          <plist version="1.0">
+          <dict>
+          <key>CFBundleName</key>
+          <string>IntegrityHash</string>
+          <key>CFBundleIdentifier</key>
+          <string>com.example.integrityhash</string>
+          <key>CFBundleVersion</key>
+          <string>1.0</string>
+          <key>CFBundleExecutable</key>
+          <string>IntegrityHash</string>
+          <key>CFBundleIconFile</key>
+          <string>MyIcon</string>
+          </dict>
+          </plist>
+          EOF
 
       - name: Build DMG
         run: |
