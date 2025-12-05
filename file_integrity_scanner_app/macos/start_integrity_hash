@@ -5,7 +5,7 @@ Purpose: Start Integrity Hash app and local File-Integrity Scanner backend on ma
 Script_Information
 
 # -------------------------------------------------------------------
-# Load environment variables from ~/.zshrc (if they exist)
+# Load environment variables from ~/.zshrc
 # -------------------------------------------------------------------
 if [ -f "$HOME/.zshrc" ]; then
     # Only load exports, ignore aliases/functions
@@ -70,7 +70,7 @@ start_frontend_app() {
 # Main execution
 # -------------------------------------------------------------------
 
-# Make sure integrity_hash_app_folder is defined
+
 if [ -z "$integrity_hash_app_folder" ]; then
     echo "[ERROR] integrity_hash_app_folder not set. Please define it in ~/.zshrc or export before running."
     exit 1
