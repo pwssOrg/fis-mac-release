@@ -5,16 +5,17 @@ Purpose: Script used for setting the environment for Integrity Hash
 Script_Information
 
 # -------------------------------------------------------------------
-# Persist 4 environment variables for Integrity Hash on macOS
+# Persist 5 environment variables for Integrity Hash on macOS
 # Args:
 #   1 = Integrity Hash DB User
 #   2 = Integrity Hash DB Password
 #   3 = FE Truststore Password
 #   4 = Local BE SSL Password
+#   5 = Integrity Hash App Folde
 # -------------------------------------------------------------------
 
-if [ "$#" -ne 4 ]; then
-    echo "Usage: $0 <DB_USER> <DB_PASSWORD> <TRUSTSTORE_PASSWORD> <SSL_PASSWORD>"
+if [ "$#" -ne 5 ]; then
+    echo "Usage: $0 <DB_USER> <DB_PASSWORD> <TRUSTSTORE_PASSWORD> <SSL_PASSWORD> <INTEGRITY_HASH_APP_FOLDER>"
     exit 1
 fi
 
@@ -22,6 +23,7 @@ DB_USER="$1"
 DB_PASSWORD="$2"
 TRUSTSTORE_PASSWORD="$3"
 SSL_PASSWORD="$4"
+INTEGRITY_HASH_APP_FOLDER="$5"
 
 ZSHRC="$HOME/.zshrc"
 
@@ -35,6 +37,7 @@ sed -i '' "/INTEGRITY_HASH_DB_USER=/d" "$ZSHRC"
 sed -i '' "/INTEGRITY_HASH_DB_PASSWORD=/d" "$ZSHRC"
 sed -i '' "/TRUSTSTORE_FIS_GUI=/d" "$ZSHRC"
 sed -i '' "/ssl_file_integrity_scanner=/d" "$ZSHRC"
+sed -i '' "/integrity_hash_app_folder=/d" "$ZSHRC"
 
 echo "[INFO] Adding new environment variables..."
 
@@ -44,6 +47,7 @@ echo "[INFO] Adding new environment variables..."
     echo "export INTEGRITY_HASH_DB_PASSWORD=\"$DB_PASSWORD\""
     echo "export TRUSTSTORE_FIS_GUI=\"$TRUSTSTORE_PASSWORD\""
     echo "export ssl_file_integrity_scanner=\"$SSL_PASSWORD\""
+    echo "export integrity_hash_app_folder=\"$INTEGRITY_HASH_APP_FOLDER\""
 } >> "$ZSHRC"
 
 
