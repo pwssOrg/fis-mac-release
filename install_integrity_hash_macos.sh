@@ -254,12 +254,8 @@ echo "[INFO] Database setup complete!"
 # ENVIRONMENT SETUP
 # ====================================================================
 
-touch ~/.zshrc
 echo "[INFO] Running environment setup script..."
-bash setup_enviroment/integrity_hash_enviroment \
-  "$(pwd)/file_integrity_scanner_app/" \
-  "$DB_USER" "$DB_PASSWORD" \
-  "truststore_mock_value" "ssl_mock_value"
+bash setup_enviroment/integrity_hash_enviroment "$DB_USER" "$DB_PASSWORD" "truststore_mock_value" "ssl_mock_value"
 
 echo "======================================================"
 echo " INSTALLATION COMPLETE!"
