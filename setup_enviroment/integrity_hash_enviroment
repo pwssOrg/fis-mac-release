@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+<< Script_Information
+Created: December-2025
+Purpose: Script used for setting the environment for Integrity Hash
+Input Arg: 1 Integrity Hash Release Folder Path Input Arg: 2. Integrity Hash DB User Input Arg: 3. Integrity Hash DB Password Input Arg: 4. FE Truststore Password Input Arg: 5. Local BE SSL Password
+Script_Information
+
+Version="Integrity Hash v1.3"
+
+# Paths
+integrity_hash_install_path="$1"
+integrity_hash_mac_path="${integrity_hash_install_path}/mac"
+
+# Aliases (mac version)
+start_integrity_hash="alias integrity_hash=\"(cd '$integrity_hash_mac_path' && bash start_integrity_hash)\""
+integrity_hash_version_alias="alias integrity_hash_version=\"echo '$Version'\""
+jump_to_folder_for_integrity_hash_release_alias="alias integrity_hash_path=\"cd '$integrity_hash_install_path' && ls -lt\""
+
+# Environment variables
+integrity_hash_app_folder_env="export integrity_hash_app_folder=\"$1\""
+INTEGRITY_HASH_DB_USER_env="export INTEGRITY_HASH_DB_USER=\"$2\""
+INTEGRITY_HASH_DB_PASSWORD_env="export INTEGRITY_HASH_DB_PASSWORD=\"$3\""
+TRUSTSTORE_FIS_GUI_env="export TRUSTSTORE_FIS_GUI=\"$4\""
+ssl_file_integrity_scanner_env="export ssl_file_integrity_scanner=\"$5\""
+
+# Check if Integrity Hash is already installed
+is_already_existing=$(grep -e "$Version" ~/.zshrc)
+length="${#is_already_existing}"
+
+case $length in
+    0)
+        echo "Updating Integrity Hash aliases in .zshrc"
+
+        # Remove old versions in one pass
+        awk '!/alias integrity_hash/ &&
+             !/alias integrity_hash_version/ &&
+             !/alias integrity_hash_path/ &&
+             !/export INTEGRITY_HASH_DB_USER/ &&
+             !/export INTEGRITY_HASH_DB_PASSWORD/ &&
+             !/export TRUSTSTORE_FIS_GUI/ &&
+             !/export ssl_file_integrity_scanner/ &&
+             !/export integrity_hash_app_folder/' \
+            ~/.zshrc > tmpfile && mv tmpfile ~/.zshrc
+
+        # Add new entries
+        {
+            echo "# $Version"
+            echo "$start_integrity_hash"
+            echo "$integrity_hash_version_alias"
+            echo "$jump_to_folder_for_integrity_hash_release_alias"
+            echo "$integrity_hash_app_folder_env"
+            echo "$INTEGRITY_HASH_DB_USER_env"
+            echo "$INTEGRITY_HASH_DB_PASSWORD_env"
+            echo "$TRUSTSTORE_FIS_GUI_env"
+            echo "$ssl_file_integrity_scanner_env"
+        } >> ~/.zshrc
+
+        echo "Integrity Hash environment set!"
+        ;;
+
+    *)
+        echo "Integrity Hash commands are already installed on your system"
+        ;;
+esac
