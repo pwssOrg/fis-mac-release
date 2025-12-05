@@ -11,7 +11,7 @@ Script_Information
 #   2 = Integrity Hash DB Password
 #   3 = FE Truststore Password
 #   4 = Local BE SSL Password
-#   5 = Integrity Hash App Folde
+#   5 = Integrity Hash App Folder
 # -------------------------------------------------------------------
 
 if [ "$#" -ne 5 ]; then
