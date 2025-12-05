@@ -43,6 +43,8 @@ jobs:
           <string>IntegrityHash</string>
           <key>CFBundleIconFile</key>
           <string>MyIcon</string>
+          <key>CFBundleVersion</key>
+          <string>1.0</string>
           </dict>
           </plist>
           EOF
