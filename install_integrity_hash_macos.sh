@@ -248,7 +248,7 @@ echo "[INFO] Database setup complete!"
 ## Keep commented until packaging strategy is finalized
  echo "[INFO] Setting executable permissions for environment scripts"
  chmod +x setup_enviroment/integrity_hash_enviroment || true
- chmod +x ../file_integrity_scanner_app/macos/start_integrity_hash || true
+ chmod +x file_integrity_scanner_app/macos/start_integrity_hash || true
 
 # ====================================================================
 # ENVIRONMENT SETUP
