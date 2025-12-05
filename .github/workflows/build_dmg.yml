@@ -1,0 +1,59 @@
+name: Build DMG
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-dmg:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Make script executable
+      run: chmod +x file_integrity_scanner_app/macos/start_integrity_hash
+
+    - name: Create App bundle using Automator
+      run: |
+        mkdir -p IntegrityHashApp
+        cp file_integrity_scanner_app/macos/start_integrity_hash IntegrityHashApp/
+        
+        # Skapa minimal .app bundle
+        mkdir -p IntegrityHash.app/Contents/MacOS
+        echo '#!/bin/bash
+        cd "$(dirname "$0")"
+        ./start_integrity_hash.sh' > IntegrityHash.app/Contents/MacOS/IntegrityHash
+        chmod +x IntegrityHash.app/Contents/MacOS/IntegrityHash
+        # Lägg till Info.plist för macOS
+        mkdir -p IntegrityHash.app/Contents
+        cat > IntegrityHash.app/Contents/Info.plist <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleName</key>
+  <string>IntegrityHash</string>
+  <key>CFBundleIdentifier</key>
+  <string>com.example.integrityhash</string>
+  <key>CFBundleVersion</key>
+  <string>1.0</string>
+  <key>CFBundleExecutable</key>
+  <string>IntegrityHash</string>
+</dict>
+</plist>
+EOF
+
+    - name: Build DMG
+      run: |
+        mkdir dmg_temp
+        cp -R IntegrityHash.app dmg_temp/
+        hdiutil create -volname "Integrity Hash" -srcfolder dmg_temp -ov -format UDZO IntegrityHash.dmg
+
+    - name: Upload DMG
+      uses: actions/upload-artifact@v3
+      with:
+        name: IntegrityHash.dmg
+        path: IntegrityHash.dmg
