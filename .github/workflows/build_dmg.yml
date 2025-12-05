@@ -29,14 +29,14 @@ jobs:
 
 
 
-          cat <<EOF > ~/.m2/settings.xml
+          cat <<EOF > IntegrityHash.app/Contents/Info.plist
           <?xml version="1.0" encoding="UTF-8"?>
           <plist version="1.0">
           <dict>
           <key>CFBundleName</key>
           <string>IntegrityHash</string>
           <key>CFBundleIdentifier</key>
-          <string>com.example.integrityhash</string>
+          <string>org.pwss.integrityhash</string>
           <key>CFBundleVersion</key>
           <string>1.0</string>
           <key>CFBundleExecutable</key>
