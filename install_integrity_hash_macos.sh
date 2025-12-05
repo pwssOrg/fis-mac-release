@@ -255,7 +255,7 @@ echo "[INFO] Database setup complete!"
 # ====================================================================
 
 echo "[INFO] Running environment setup script..."
-bash setup_enviroment/integrity_hash_enviroment "$DB_USER" "$DB_PASSWORD" "truststore_mock_value" "ssl_mock_value"
+bash setup_enviroment/integrity_hash_enviroment "$DB_USER" "$DB_PASSWORD" "truststore_mock_value" "ssl_mock_value" "mockpath/file_integrity_scanner_app/macos"
 
 echo "======================================================"
 echo " INSTALLATION COMPLETE!"
