@@ -46,10 +46,6 @@ echo "[INFO] Adding new environment variables..."
     echo "export ssl_file_integrity_scanner=\"$SSL_PASSWORD\""
 } >> "$ZSHRC"
 
-
-echo "[INFO] Cat .zshrc"
-cat -n "$ZSHRC"
-
 echo "[INFO] Done. Reload your terminal or run:"
 echo "source ~/.zshrc"
 
