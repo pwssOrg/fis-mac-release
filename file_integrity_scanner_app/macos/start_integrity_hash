@@ -47,7 +47,7 @@ start_local_server_in_background() {
     fi
 
     file_path="${integrity_hash_app_folder}/local_backend/File-Integrity-Scanner-1.8.2.jar"
-    expected_hash="9d15f2a6f89cc1c37a31db3fccf404ed4caf60fabb55bc9caab4d97b0267293d"
+    expected_hash="2304951110d6a8b8965499e4bf87d2a10617818aa3ef618387e9dd178554b7fb"
     check_file_hash "$file_path" "$expected_hash"
 
     echo "[INFO] Starting Local Backend Java App..."
