@@ -64,6 +64,10 @@ jobs:
           cp file_integrity_scanner_app/macos/start_integrity_hash IntegrityHash.app/Contents/MacOS/IntegrityHash
           chmod +x IntegrityHash.app/Contents/MacOS/IntegrityHash
 
+          # Copy app folder and options folder
+          cp -r file_integrity_scanner_app/options IntegrityHash.app/Contents/Resources/frontend/
+          cp -r file_integrity_scanner_app/app_storage IntegrityHash.app/Contents/Resources/frontend/
+
           # Copy Frontend Jar into app folder
           cp integrity_hash-1.2.jar IntegrityHash.app/Contents/Resources/frontend/
           chmod +x IntegrityHash.app/Contents/Resources/frontend/integrity_hash-1.2.jar
@@ -73,8 +77,7 @@ jobs:
           chmod +x IntegrityHash.app/Contents/Resources/local_backend/File-Integrity-Scanner-1.8.2.jar
           
           # Copy icon for app
-          # cp file_integrity_scanner_app/macos/MyIcon.icns IntegrityHash.app/Contents/Resources/MyIcon.icns
-
+          cp file_integrity_scanner_app/MyIcon.icns IntegrityHash.app/Contents/Resources/MyIcon.icns
 
 
           cat <<EOF > IntegrityHash.app/Contents/Info.plist
