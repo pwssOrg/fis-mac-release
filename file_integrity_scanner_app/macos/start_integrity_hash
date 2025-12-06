@@ -5,6 +5,19 @@ Purpose: Start Integrity Hash app and local File-Integrity Scanner backend on ma
 Script_Information
 
 # -------------------------------------------------------------------
+# Set integrity_hash_app_folder based on the app's location
+# -------------------------------------------------------------------
+# The script will be executed from within the MacOS folder of the .app bundle.
+# We need to find the root directory of the app.
+integrity_hash_app_folder="$(dirname "$(realpath "$0")")/.."
+
+# Ensure the app folder is correctly detected
+if [ ! -d "$integrity_hash_app_folder" ]; then
+    echo "[ERROR] Unable to detect IntegrityHash.app folder."
+    exit 1
+fi
+
+# -------------------------------------------------------------------
 # Load environment variables from ~/.zshrc
 # -------------------------------------------------------------------
 if [ -f "$HOME/.zshrc" ]; then
@@ -18,64 +31,69 @@ fi
 # Functions
 # -------------------------------------------------------------------
 
+# Function to check SHA-256 hash integrity of a file
 check_file_hash() {
     local file_path="$1"
     local expected_hash="$2"
 
-    # Calculate SHA-256 hash
+    # Calculate SHA-256 hash of the file
     actual_hash=$(shasum -a 256 "$file_path" | awk '{print $1}')
 
     if [ "$actual_hash" != "$expected_hash" ]; then
-        echo "Hash mismatch! File may be tampered or incorrect."
+        echo "Hash mismatch! The file may be tampered or incorrect."
         echo "Expected: $expected_hash"
         echo "Actual:   $actual_hash"
-        exit 1
+        exit 1  # Exit with an error code if hashes don't match
     else
         echo "SHA-256 hash matches for $file_path"
     fi
 }
 
+# Function to start the local backend server in the background
 start_local_server_in_background() {
-    echo "[INFO] Checking PostgreSQL on port 26556..."
+    echo "[INFO] Checking if PostgreSQL is running on port 26556..."
+
+    # Check if PostgreSQL is already running on the specified port
     if lsof -i tcp:26556 >/dev/null 2>&1; then
-        echo "[INFO] PostgreSQL already running on port 26556"
+        echo "[INFO] PostgreSQL is already running on port 26556."
     else
         echo "[INFO] Starting local PostgreSQL server on port 26556..."
+        
+        # Start PostgreSQL server in the background
         LC_ALL="en_US.UTF-8" /opt/homebrew/opt/postgresql@17/bin/postgres \
             -D /opt/homebrew/var/postgresql@17 -p 26556 &
-        sleep 5
+        sleep 5  # Give it a moment to start
     fi
 
-    file_path="${integrity_hash_app_folder}/local_backend/File-Integrity-Scanner-1.8.2.jar"
-    expected_hash="2304951110d6a8b8965499e4bf87d2a10617818aa3ef618387e9dd178554b7fb"
-    check_file_hash "$file_path" "$expected_hash"
+    # Check file integrity of the backend JAR file
+    backend_file_path="${integrity_hash_app_folder}/Contents/Resources/local_backend/File-Integrity-Scanner-1.8.2.jar"
+    backend_expected_hash="2304951110d6a8b8965499e4bf87d2a10617818aa3ef618387e9dd178554b7fb"
+    check_file_hash "$backend_file_path" "$backend_expected_hash"
 
-    echo "[INFO] Starting Local Backend Java App..."
-    java -jar "$file_path" &
+    # Start the backend Java application
+    echo "[INFO] Starting local backend Java app..."
+    java -jar "$backend_file_path" &
     backend_pid=$!
     echo "[INFO] Local backend started with PID $backend_pid"
 }
 
+# Function to start the frontend app
 start_frontend_app() {
-    file_path="${integrity_hash_app_folder}/frontend/integrity_hash-1.2.jar"
-    expected_hash="d56499883018d4d4373822323d07ab2bd894fee9cbee404aa67b5aa72a6c2d1e"
-    check_file_hash "$file_path" "$expected_hash"
+    # Check file integrity of the frontend JAR file
+    frontend_file_path="${integrity_hash_app_folder}/Contents/Resources/frontend/integrity_hash-1.2.jar"
+    frontend_expected_hash="d56499883018d4d4373822323d07ab2bd894fee9cbee404aa67b5aa72a6c2d1e"
+    check_file_hash "$frontend_file_path" "$frontend_expected_hash"
 
-    echo "[INFO] Starting Frontend App..."
-    cd "${integrity_hash_app_folder}/frontend" || exit 1
-    java -jar "$file_path"
+    # Start the frontend Java app
+    echo "[INFO] Starting frontend app..."
+    cd "${integrity_hash_app_folder}/Contents/Resources/frontend" || exit 1
+    java -jar "$frontend_file_path"
 }
 
 # -------------------------------------------------------------------
-# Main execution
+# Main Execution
 # -------------------------------------------------------------------
 
-
-if [ -z "$integrity_hash_app_folder" ]; then
-    echo "[ERROR] integrity_hash_app_folder not set. Please define it in ~/.zshrc or export before running."
-    exit 1
-fi
-
-# Start backend and frontend
+# Start local backend server and frontend app
 start_local_server_in_background
 start_frontend_app
