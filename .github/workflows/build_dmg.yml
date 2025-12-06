@@ -25,7 +25,7 @@ jobs:
           chmod +x IntegrityHash.app/Contents/MacOS/IntegrityHash
 
           # Copy icon for app
-          cp file_integrity_scanner_app/macos/MyIcon.icns IntegrityHash.app/Contents/Resources/MyIcon.icns
+          # cp file_integrity_scanner_app/macos/MyIcon.icns IntegrityHash.app/Contents/Resources/MyIcon.icns
 
 
 
