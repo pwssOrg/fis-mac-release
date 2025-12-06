@@ -46,7 +46,7 @@ start_local_server_in_background() {
         sleep 5
     fi
 
-    file_path="${integrity_hash_app_folder}/local_backend/File-Integrity-Scanner-1.8.1.jar"
+    file_path="${integrity_hash_app_folder}/local_backend/File-Integrity-Scanner-1.8.2.jar"
     expected_hash="9d15f2a6f89cc1c37a31db3fccf404ed4caf60fabb55bc9caab4d97b0267293d"
     check_file_hash "$file_path" "$expected_hash"
 
