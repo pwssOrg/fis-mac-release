@@ -1,0 +1,62 @@
+name: Build IntegrityHash DMG
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-dmg:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Make start script executable
+        run: chmod +x file_integrity_scanner_app/macos/start_integrity_hash
+
+      - name: Create App bundle with Info.plist and icon
+        run: |
+          # Create folder structure for .app
+          mkdir -p IntegrityHash.app/Contents/MacOS
+          mkdir -p IntegrityHash.app/Contents/Resources
+
+          # Copy start script into app folder
+          cp file_integrity_scanner_app/macos/start_integrity_hash IntegrityHash.app/Contents/MacOS/IntegrityHash
+          chmod +x IntegrityHash.app/Contents/MacOS/IntegrityHash
+
+          # Copy icon for app
+          cp file_integrity_scanner_app/macos/MyIcon.icns IntegrityHash.app/Contents/Resources/MyIcon.icns
+
+
+
+          cat <<EOF > IntegrityHash.app/Contents/Info.plist
+          <?xml version="1.0" encoding="UTF-8"?>
+          <plist version="1.0">
+          <dict>
+          <key>CFBundleName</key>
+          <string>IntegrityHash</string>
+          <key>CFBundleIdentifier</key>
+          <string>org.pwss.integrityhash</string>
+          <key>CFBundleVersion</key>
+          <string>1.0</string>
+          <key>CFBundleExecutable</key>
+          <string>IntegrityHash</string>
+          <key>CFBundleIconFile</key>
+          <string>MyIcon</string>
+          <key>CFBundleVersion</key>
+          <string>1.0</string>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Build DMG
+        run: |
+          mkdir dmg_temp
+          cp -R IntegrityHash.app dmg_temp/
+          hdiutil create -volname "Integrity Hash" -srcfolder dmg_temp -ov -format UDZO IntegrityHash.dmg
+
+      - name: Upload DMG
+        uses: actions/upload-artifact@v3
+        with:
+          name: IntegrityHash.dmg
+          path: IntegrityHash.dmg

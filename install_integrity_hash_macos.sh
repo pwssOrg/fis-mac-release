@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 # ======================================================
@@ -245,19 +245,16 @@ echo "[INFO] Database setup complete!"
 # ====================================================================
 # OPTIONAL EXECUTION PERMISSIONS (COMMENTED)
 # ====================================================================
-## Keep commented until packaging strategy is finalized
-# echo "[INFO] Setting executable permissions for environment scripts"
-# chmod +x setup_enviroment/integrity_hash_enviroment || true
-# chmod +x ../file_integrity_scanner_app/macos/start_integrity_hash || true
+ echo "[INFO] Setting executable permissions for environment scripts"
+ chmod +x setup_enviroment/integrity_hash_enviroment || true
+ chmod +x file_integrity_scanner_app/macos/start_integrity_hash || true
 
 # ====================================================================
 # ENVIRONMENT SETUP
 # ====================================================================
-#echo "[INFO] Running environment setup script..."
-#bash setup_enviroment/integrity_hash_enviroment \
-#  "$(pwd)/../file_integrity_scanner_app/" \
-#  "$DB_USER" "$DB_PASSWORD" \
-#  "truststore_mock_value" "ssl_mock_value"
+
+echo "[INFO] Running environment setup script..."
+bash setup_enviroment/integrity_hash_enviroment "$DB_USER" "$DB_PASSWORD" "truststore_mock_value" "ssl_mock_value" "mockpath/file_integrity_scanner_app/macos"
 
 echo "======================================================"
 echo " INSTALLATION COMPLETE!"

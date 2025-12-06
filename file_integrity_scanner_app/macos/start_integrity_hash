@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+<< Script_Information
+Created: December-2025
+Purpose: Start Integrity Hash app and local File-Integrity Scanner backend on macOS
+Script_Information
+
+# -------------------------------------------------------------------
+# Load environment variables from ~/.zshrc
+# -------------------------------------------------------------------
+if [ -f "$HOME/.zshrc" ]; then
+    # Only load exports, ignore aliases/functions
+    set -a
+    source "$HOME/.zshrc"
+    set +a
+fi
+
+# -------------------------------------------------------------------
+# Functions
+# -------------------------------------------------------------------
+
+check_file_hash() {
+    local file_path="$1"
+    local expected_hash="$2"
+
+    # Calculate SHA-256 hash
+    actual_hash=$(shasum -a 256 "$file_path" | awk '{print $1}')
+
+    if [ "$actual_hash" != "$expected_hash" ]; then
+        echo "Hash mismatch! File may be tampered or incorrect."
+        echo "Expected: $expected_hash"
+        echo "Actual:   $actual_hash"
+        exit 1
+    else
+        echo "SHA-256 hash matches for $file_path"
+    fi
+}
+
+start_local_server_in_background() {
+    echo "[INFO] Checking PostgreSQL on port 26556..."
+    if lsof -i tcp:26556 >/dev/null 2>&1; then
+        echo "[INFO] PostgreSQL already running on port 26556"
+    else
+        echo "[INFO] Starting local PostgreSQL server on port 26556..."
+        LC_ALL="en_US.UTF-8" /opt/homebrew/opt/postgresql@17/bin/postgres \
+            -D /opt/homebrew/var/postgresql@17 -p 26556 &
+        sleep 5
+    fi
+
+    file_path="${integrity_hash_app_folder}/local_backend/File-Integrity-Scanner-1.8.1.jar"
+    expected_hash="9d15f2a6f89cc1c37a31db3fccf404ed4caf60fabb55bc9caab4d97b0267293d"
+    check_file_hash "$file_path" "$expected_hash"
+
+    echo "[INFO] Starting Local Backend Java App..."
+    java -jar "$file_path" &
+    backend_pid=$!
+    echo "[INFO] Local backend started with PID $backend_pid"
+}
+
+start_frontend_app() {
+    file_path="${integrity_hash_app_folder}/frontend/integrity_hash-1.2.jar"
+    expected_hash="d56499883018d4d4373822323d07ab2bd894fee9cbee404aa67b5aa72a6c2d1e"
+    check_file_hash "$file_path" "$expected_hash"
+
+    echo "[INFO] Starting Frontend App..."
+    cd "${integrity_hash_app_folder}/frontend" || exit 1
+    java -jar "$file_path"
+}
+
+# -------------------------------------------------------------------
+# Main execution
+# -------------------------------------------------------------------
+
+
+if [ -z "$integrity_hash_app_folder" ]; then
+    echo "[ERROR] integrity_hash_app_folder not set. Please define it in ~/.zshrc or export before running."
+    exit 1
+fi
+
+# Start backend and frontend
+start_local_server_in_background
+start_frontend_app
