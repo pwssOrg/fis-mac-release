@@ -241,6 +241,15 @@ INSERT INTO license(id,license_data) VALUES
 ON CONFLICT DO NOTHING;
 EOF
 
+# --- SET TABLE & DB OWNERSHIP ---
+TABLES=(time note file checksum monitored_directory scan scan_summary diff auth user_ license)
+
+for t in "${TABLES[@]}"; do
+    sudo -u postgres psql -d "$DB_NAME" -p $PORT -c "ALTER TABLE IF EXISTS \"$t\" OWNER TO \"$DB_USER\";"
+done
+
+sudo -u postgres psql -p $PORT -c "ALTER DATABASE \"$DB_NAME\" OWNER TO \"$DB_USER\";"
+
 echo "[INFO] Database setup complete!"
 # ====================================================================
 # OPTIONAL EXECUTION PERMISSIONS (COMMENTED)
