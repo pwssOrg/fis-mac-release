@@ -14,16 +14,64 @@ jobs:
       - name: Make start script executable
         run: chmod +x file_integrity_scanner_app/macos/start_integrity_hash
 
+      - name: Download JAR files from another repository
+        run: |
+          curl -L -o integrity_hash-1.2.jar https://github.com/pwssOrg/File-Integrity-GUI/releases/download/v1.2/integrity_hash-1.2.jar
+          curl -L -o File-Integrity-Scanner-1.8.2.jar https://github.com/pwssOrg/File-Integrity-Scanner/releases/download/v1.8.2/File-Integrity-Scanner-1.8.2.jar
+
+
+      - name: Verify SHA256 hash for integrity_hash-1.2
+        run: |
+          # Expected SHA256 hash of jar1.jar (replace with the actual expected hash)
+          expected_hash="d56499883018d4d4373822323d07ab2bd894fee9cbee404aa67b5aa72a6c2d1e"
+          
+          # Calculate the actual SHA256 hash of the downloaded jar file
+          actual_hash=$(sha256sum integrity_hash-1.2.jar | awk '{print $1}')
+          
+          # Compare the actual and expected hashes
+          if [ "$actual_hash" != "$expected_hash" ]; then
+            echo "SHA256 hash mismatch for jar1.jar: expected $expected_hash, got $actual_hash"
+            exit 1  # Exit with failure if hashes don't match
+          else
+            echo "SHA256 hash for jar1.jar is valid"
+          fi
+
+      - name: Verify SHA256 hash for File-Integrity-Scanner-1.8.2
+        run: |
+          # Expected SHA256 hash of jar2.jar (replace with the actual expected hash)
+          expected_hash="2304951110d6a8b8965499e4bf87d2a10617818aa3ef618387e9dd178554b7fb"
+          
+          # Calculate the actual SHA256 hash of the downloaded jar file
+          actual_hash=$(sha256sum File-Integrity-Scanner-1.8.2.jar | awk '{print $1}')
+          
+          # Compare the actual and expected hashes
+          if [ "$actual_hash" != "$expected_hash" ]; then
+            echo "SHA256 hash mismatch for jar2.jar: expected $expected_hash, got $actual_hash"
+            exit 1  # Exit with failure if hashes don't match
+          else
+            echo "SHA256 hash for jar2.jar is valid"
+          fi
+
       - name: Create App bundle with Info.plist and icon
         run: |
           # Create folder structure for .app
           mkdir -p IntegrityHash.app/Contents/MacOS
           mkdir -p IntegrityHash.app/Contents/Resources
-
+          mkdir -p IntegrityHash.app/Contents/Resources/frontend
+          mkdir -p IntegrityHash.app/Contents/Resources/local_backend
+          
           # Copy start script into app folder
           cp file_integrity_scanner_app/macos/start_integrity_hash IntegrityHash.app/Contents/MacOS/IntegrityHash
           chmod +x IntegrityHash.app/Contents/MacOS/IntegrityHash
 
+          # Copy Frontend Jar into app folder
+          cp integrity_hash-1.2.jar IntegrityHash.app/Contents/Resources/frontend/
+          chmod +x IntegrityHash.app/Contents/Resources/frontend/integrity_hash-1.2.jar
+
+          # Copy Backend Jar into app folder
+          cp File-Integrity-Scanner-1.8.2.jar IntegrityHash.app/Contents/Resources/local_backend/
+          chmod +x IntegrityHash.app/Contents/Resources/local_backend/File-Integrity-Scanner-1.8.2.jar
+          
           # Copy icon for app
           # cp file_integrity_scanner_app/macos/MyIcon.icns IntegrityHash.app/Contents/Resources/MyIcon.icns
 
