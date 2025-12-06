@@ -7,11 +7,11 @@ set -euo pipefail
 # Run locally with custom DB credentials:
 # Lokalt: DB_USER=myuser DB_PASSWORD=mypassword ./install_integrity_hash_macos.sh
 #
-# Script version: 1.0.0
+# Script version: 1.0.1
 # PostgreSQL target version: 17
 # ======================================================
 
-SCRIPT_VERSION="1.0.0"
+SCRIPT_VERSION="1.0.1"
 PG_TARGET_VERSION="17"
 
 echo "======================================================"
@@ -254,7 +254,7 @@ echo "[INFO] Database setup complete!"
 # ====================================================================
 
 echo "[INFO] Running environment setup script..."
-bash setup_enviroment/integrity_hash_enviroment "$DB_USER" "$DB_PASSWORD" "truststore_mock_value" "ssl_mock_value" "mockpath/file_integrity_scanner_app/macos"
+bash setup_enviroment/integrity_hash_enviroment "$DB_USER" "$DB_PASSWORD" "truststore_mock_value" "ssl_mock_value"
 
 echo "======================================================"
 echo " INSTALLATION COMPLETE!"
