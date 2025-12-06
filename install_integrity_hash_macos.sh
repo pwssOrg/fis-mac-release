@@ -22,8 +22,30 @@ echo "======================================================"
 # ====================================================================
 # SETTINGS FROM ENV OR DEFAULTS
 # ====================================================================
-DB_USER="${DB_USER:-integrity}"
-DB_PASSWORD="${DB_PASSWORD:-integrity123}"
+# Detect GitHub Actions environment
+if [ "${GITHUB_ACTIONS}" != "true" ]; then
+
+    ### --- ASK USER FOR DB CREDENTIALS ---
+
+    read -p "Enter database user: " DB_USER
+
+    read -sp "Enter database password: " DB_PASSWORD
+
+    echo ""
+
+else
+
+    ### --- RUN IN GITHUB ACTIONS ---
+
+    DB_USER="${DB_USER:-integrity}"
+
+    DB_PASSWORD="${DB_PASSWORD:-integrity123}"
+
+fi
+ 
+# Debug print
+
+echo "DB_USER: $DB_USER"
 DB_NAME="integrity_hash"
 PORT=26556
 INSTALL_JAVA="${INSTALL_JAVA:-false}"
