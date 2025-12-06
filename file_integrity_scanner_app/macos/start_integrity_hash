@@ -66,7 +66,7 @@ start_local_server_in_background() {
     fi
 
     # Check file integrity of the backend JAR file
-    backend_file_path="${integrity_hash_app_folder}/Contents/Resources/local_backend/File-Integrity-Scanner-1.8.2.jar"
+    backend_file_path="${integrity_hash_app_folder}/Resources/local_backend/File-Integrity-Scanner-1.8.2.jar"
     backend_expected_hash="2304951110d6a8b8965499e4bf87d2a10617818aa3ef618387e9dd178554b7fb"
     check_file_hash "$backend_file_path" "$backend_expected_hash"
 
@@ -80,13 +80,13 @@ start_local_server_in_background() {
 # Function to start the frontend app
 start_frontend_app() {
     # Check file integrity of the frontend JAR file
-    frontend_file_path="${integrity_hash_app_folder}/Contents/Resources/frontend/integrity_hash-1.2.jar"
+    frontend_file_path="${integrity_hash_app_folder}/Resources/frontend/integrity_hash-1.2.jar"
     frontend_expected_hash="d56499883018d4d4373822323d07ab2bd894fee9cbee404aa67b5aa72a6c2d1e"
     check_file_hash "$frontend_file_path" "$frontend_expected_hash"
 
     # Start the frontend Java app
     echo "[INFO] Starting frontend app..."
-    cd "${integrity_hash_app_folder}/Contents/Resources/frontend" || exit 1
+    cd "${integrity_hash_app_folder}/Resources/frontend" || exit 1
     java -jar "$frontend_file_path"
 }
 
