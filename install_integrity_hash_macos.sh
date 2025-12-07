@@ -7,11 +7,11 @@ set -euo pipefail
 # Run locally with custom DB credentials:
 # Lokalt: DB_USER=myuser DB_PASSWORD=mypassword ./install_integrity_hash_macos.sh
 #
-# Script version: 1.0.3
+# Script version: 1.0.4
 # PostgreSQL target version: 17
 # ======================================================
 
-SCRIPT_VERSION="1.0.3"
+SCRIPT_VERSION="1.0.4"
 PG_TARGET_VERSION="17"
 
 echo "======================================================"
@@ -96,6 +96,7 @@ export PATH="$(brew --prefix postgresql@17)/bin:$PATH"
 
 PG_VERSION=$(psql --version | awk '{print $3}' | cut -d. -f1)
 PG_DATA_DIR="$(brew --prefix postgresql@${PG_VERSION})/var/postgresql@${PG_VERSION}"
+PG_DATA_DIR_HOMEBREW="/opt/homebrew/var/postgresql@${PG_VERSION}"
 PG_CONF_PATH="$PG_DATA_DIR/postgresql.conf"
 
 echo "[INFO] PostgreSQL version detected: $PG_VERSION"
@@ -126,19 +127,36 @@ sudo mkdir -p /usr/local/etc/ssl/private
 
 # Copy certificate and key
 sudo cp psql_files/psql/cert/server.crt "$PG_DATA_DIR/server.crt"
-sudo cp psql_files/psql/cert/server.key "$PG_DATA_DIR/server.key"
+sudo chown "$(whoami)" "$PG_DATA_DIR/server.crt"
+
+sudo cp "$PG_DATA_DIR/server.crt" "$PG_DATA_DIR_HOMEBREW/server.crt"
 
 # Set secure permissions for key
+sudo cp psql_files/psql/cert/server.key "$PG_DATA_DIR/server.key"
 sudo chmod 600 "$PG_DATA_DIR/server.key"
 sudo chown "$(whoami)" "$PG_DATA_DIR/server.key"
+
+sudo cp "$PG_DATA_DIR/server.key" "$PG_DATA_DIR_HOMEBREW/server.key"
 
 # Copy passphrase script with sudo and make executable
 sudo cp psql_files/psql/pass/avocado "$PG_DATA_DIR/ssl_passphrase.sh"
 sudo chmod 700 "$PG_DATA_DIR/ssl_passphrase.sh"
 sudo chown "$(whoami)" "$PG_DATA_DIR/ssl_passphrase.sh"
 
+sude cp "$PG_DATA_DIR/ssl_passphrase.sh" "$PG_DATA_DIR_HOMEBREW/ssl_passphrase.sh"
+
 # Copy PostgreSQL configuration
 cp psql_files/postgresql.conf "$PG_CONF_PATH"
+cp "$PG_CONF_PATH" "$PG_DATA_DIR_HOMEBREW/postgresql.conf"
+
+echo "PG_DATA_DIR: $PG_DATA_DIR"
+echo "PG_CONF_PATH: $PG_CONF_PATH"
+
+ls -l "$PG_DATA_DIR/server.crt"
+
+ls -l "$PG_DATA_DIR/server.key"
+
+ls -l "$PG_DATA_DIR/ssl_passphrase.sh"
 
 echo "[INFO] SSL certificates and configuration copied successfully."
 
@@ -146,7 +164,7 @@ echo "[INFO] SSL certificates and configuration copied successfully."
 # ENVIRONMENT SETUP
 # ====================================================================
 echo "[INFO] Running environment setup script..."
-bash setup_enviroment/integrity_hash_enviroment "$DB_USER" "$DB_PASSWORD" "truststore_mock_value" "ssl_mock_value"
+bash setup_enviroment/integrity_hash_enviroment "$DB_USER" "$DB_PASSWORD" "mock_truststore" "mock_ssl"
 
 # ====================================================================
 # START POSTGRESQL
@@ -158,28 +176,7 @@ echo "[INFO] Starting PostgreSQL with new configuration..."
 if [ "${GITHUB_ACTIONS}" != "true" ]; then
     # Locally: Restart PostgreSQL using brew
     echo "[INFO] Restarting PostgreSQL service locally..."
-    #brew services restart postgresql@17
-
-    # Start PostgreSQL in the background and save the PID
-    echo "[INFO] Starting PostgreSQL with custom configuration..."
-
-    LC_ALL="en_US.UTF-8" /opt/homebrew/opt/postgresql@17/bin/postgres -D /opt/homebrew/var/postgresql@17 -p 26556 &
-
-    PG_PID=$!
- 
-    # Wait for a few seconds to ensure PostgreSQL has started
-    sleep 5
- 
-    # Check if PostgreSQL is running by checking the PID
-    if ps -p $PG_PID > /dev/null; then
-      echo "[INFO] PostgreSQL started successfully with PID $PG_PID."
-    else
-       echo "[ERROR] Failed to start PostgreSQL."
-       exit 1
-    fi
- 
-    # Continue with database setup
-    echo "[INFO] Database setup continues..."
+    brew services restart postgresql@17
 else
     # In GitHub Actions: Manually start PostgreSQL with custom config
     LC_ALL="en_US.UTF-8" /opt/homebrew/opt/postgresql@17/bin/postgres \
@@ -324,6 +321,11 @@ echo "[INFO] Database setup complete!"
 echo "[INFO] Setting executable permissions for environment scripts"
 chmod +x setup_enviroment/integrity_hash_enviroment || true
 chmod +x file_integrity_scanner_app/macos/start_integrity_hash || true
+
+# ====================================================================
+# Setting psql executable to path
+# ====================================================================
+export PATH="$(brew --prefix postgresql@17)/bin:$PATH"
 
 echo "======================================================"
 echo " INSTALLATION COMPLETE!"
