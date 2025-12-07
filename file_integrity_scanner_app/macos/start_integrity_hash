@@ -59,10 +59,7 @@ start_local_server_in_background() {
     else
         echo "[INFO] Starting local PostgreSQL server on port 26556..."
         
-        # Start PostgreSQL server in the background
-        LC_ALL="en_US.UTF-8" /opt/homebrew/opt/postgresql@17/bin/postgres \
-            -D /opt/homebrew/var/postgresql@17 -p 26556 &
-        sleep 5  # Give it a moment to start
+        brew services restart postgresql@17
     fi
 
     # Check file integrity of the backend JAR file
