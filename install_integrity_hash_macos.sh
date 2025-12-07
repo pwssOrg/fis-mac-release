@@ -143,7 +143,7 @@ sudo cp psql_files/psql/pass/avocado "$PG_DATA_DIR/ssl_passphrase.sh"
 sudo chmod 700 "$PG_DATA_DIR/ssl_passphrase.sh"
 sudo chown "$(whoami)" "$PG_DATA_DIR/ssl_passphrase.sh"
 
-sude cp "$PG_DATA_DIR/ssl_passphrase.sh" "$PG_DATA_DIR_HOMEBREW/ssl_passphrase.sh"
+sudo cp "$PG_DATA_DIR/ssl_passphrase.sh" "$PG_DATA_DIR_HOMEBREW/ssl_passphrase.sh"
 
 # Copy PostgreSQL configuration
 cp psql_files/postgresql.conf "$PG_CONF_PATH"
