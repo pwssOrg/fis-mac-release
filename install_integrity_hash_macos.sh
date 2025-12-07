@@ -7,11 +7,11 @@ set -euo pipefail
 # Run locally with custom DB credentials:
 # Lokalt: DB_USER=myuser DB_PASSWORD=mypassword ./install_integrity_hash_macos.sh
 #
-# Script version: 1.0.4
+# Script version: 1.0.5
 # PostgreSQL target version: 17
 # ======================================================
 
-SCRIPT_VERSION="1.0.4"
+SCRIPT_VERSION="1.0.5"
 PG_TARGET_VERSION="17"
 
 echo "======================================================"
@@ -130,6 +130,7 @@ sudo cp psql_files/psql/cert/server.crt "$PG_DATA_DIR/server.crt"
 sudo chown "$(whoami)" "$PG_DATA_DIR/server.crt"
 
 sudo cp "$PG_DATA_DIR/server.crt" "$PG_DATA_DIR_HOMEBREW/server.crt"
+sudo chown "$(whoami)" "$PG_DATA_DIR_HOMEBREW/server.crt"
 
 # Set secure permissions for key
 sudo cp psql_files/psql/cert/server.key "$PG_DATA_DIR/server.key"
@@ -137,6 +138,8 @@ sudo chmod 600 "$PG_DATA_DIR/server.key"
 sudo chown "$(whoami)" "$PG_DATA_DIR/server.key"
 
 sudo cp "$PG_DATA_DIR/server.key" "$PG_DATA_DIR_HOMEBREW/server.key"
+sudo chmod 600 "$PG_DATA_DIR_HOMEBREW/server.key"
+sudo chown "$(whoami)" "$PG_DATA_DIR_HOMEBREW/server.key"
 
 # Copy passphrase script with sudo and make executable
 sudo cp psql_files/psql/pass/avocado "$PG_DATA_DIR/ssl_passphrase.sh"
@@ -144,6 +147,8 @@ sudo chmod 700 "$PG_DATA_DIR/ssl_passphrase.sh"
 sudo chown "$(whoami)" "$PG_DATA_DIR/ssl_passphrase.sh"
 
 sudo cp "$PG_DATA_DIR/ssl_passphrase.sh" "$PG_DATA_DIR_HOMEBREW/ssl_passphrase.sh"
+sudo chmod 700 "$PG_DATA_DIR_HOMEBREW/ssl_passphrase.sh"
+sudo chown "$(whoami)" "$PG_DATA_DIR_HOMEBREW/ssl_passphrase.sh"
 
 # Copy PostgreSQL configuration
 cp psql_files/postgresql.conf "$PG_CONF_PATH"
@@ -176,7 +181,27 @@ echo "[INFO] Starting PostgreSQL with new configuration..."
 if [ "${GITHUB_ACTIONS}" != "true" ]; then
     # Locally: Restart PostgreSQL using brew
     echo "[INFO] Restarting PostgreSQL service locally..."
-    brew services restart postgresql@17
+    #brew services restart postgresql@17
+    # Start PostgreSQL in the background and save the PID
+    echo "[INFO] Starting PostgreSQL with custom configuration..."
+
+    LC_ALL="en_US.UTF-8" /opt/homebrew/opt/postgresql@17/bin/postgres -D /opt/homebrew/var/postgresql@17 -p 26556 &
+
+    PG_PID=$!
+ 
+    # Wait for a few seconds to ensure PostgreSQL has started
+    sleep 5
+ 
+    # Check if PostgreSQL is running by checking the PID
+    if ps -p $PG_PID > /dev/null; then
+      echo "[INFO] PostgreSQL started successfully with PID $PG_PID."
+    else
+       echo "[ERROR] Failed to start PostgreSQL."
+       exit 1
+    fi
+ 
+    # Continue with database setup
+    echo "[INFO] Database setup continues..."
 else
     # In GitHub Actions: Manually start PostgreSQL with custom config
     LC_ALL="en_US.UTF-8" /opt/homebrew/opt/postgresql@17/bin/postgres \
