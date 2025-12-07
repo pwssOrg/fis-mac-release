@@ -48,7 +48,7 @@ fi
 echo "DB_USER: $DB_USER"
 DB_NAME="integrity_hash"
 PORT=26556
-INSTALL_JAVA="${INSTALL_JAVA:-false}"
+INSTALL_JAVA="${INSTALL_JAVA:-true}"
 
 echo "[INFO] Database user: $DB_USER"
 echo "[INFO] Java installation enabled: $INSTALL_JAVA"
@@ -94,7 +94,7 @@ fi
 export PATH="$(brew --prefix postgresql@17)/bin:$PATH"
 
 PG_VERSION=$(psql --version | awk '{print $3}' | cut -d. -f1)
-PG_DATA_DIR="$(brew --prefix)/var/postgresql@${PG_VERSION}"
+PG_DATA_DIR="$(brew --prefix postgresql@${PG_VERSION})/var/postgresql@${PG_VERSION}"
 PG_CONF_PATH="$PG_DATA_DIR/postgresql.conf"
 
 echo "[INFO] PostgreSQL version detected: $PG_VERSION"
@@ -144,11 +144,20 @@ echo "[INFO] SSL certificates and configuration copied successfully."
 # ====================================================================
 # START POSTGRESQL
 # ====================================================================
+
 echo "[INFO] Starting PostgreSQL with new configuration..."
-#brew services restart postgresql@17
-LC_ALL="en_US.UTF-8" /opt/homebrew/opt/postgresql@17/bin/postgres \
-  -D /opt/homebrew/var/postgresql@17 -p 26556 &
-sleep 5
+
+# Detect if running in GitHub Actions
+if [ "${GITHUB_ACTIONS}" != "true" ]; then
+    # Locally: Restart PostgreSQL using brew
+    echo "[INFO] Restarting PostgreSQL service locally..."
+    brew services restart postgresql@17
+else
+    # In GitHub Actions: Manually start PostgreSQL with custom config
+    LC_ALL="en_US.UTF-8" /opt/homebrew/opt/postgresql@17/bin/postgres \
+      -D /opt/homebrew/var/postgresql@17 -p 26556 &
+    sleep 5
+fi
 
 # ====================================================================
 # DATABASE USER AND DATABASE SETUP
