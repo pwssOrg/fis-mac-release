@@ -7,11 +7,11 @@ set -euo pipefail
 # Run locally with custom DB credentials:
 # Lokalt: DB_USER=myuser DB_PASSWORD=mypassword ./install_integrity_hash_macos.sh
 #
-# Script version: 1.0.1
+# Script version: 1.0.2
 # PostgreSQL target version: 17
 # ======================================================
 
-SCRIPT_VERSION="1.0.1"
+SCRIPT_VERSION="1.0.2"
 PG_TARGET_VERSION="17"
 
 echo "======================================================"
@@ -143,6 +143,12 @@ cp psql_files/postgresql.conf "$PG_CONF_PATH"
 echo "[INFO] SSL certificates and configuration copied successfully."
 
 # ====================================================================
+# ENVIRONMENT SETUP
+# ====================================================================
+echo "[INFO] Running environment setup script..."
+bash setup_enviroment/integrity_hash_enviroment "$DB_USER" "$DB_PASSWORD" "truststore_mock_value" "ssl_mock_value"
+
+# ====================================================================
 # START POSTGRESQL
 # ====================================================================
 
@@ -153,6 +159,7 @@ if [ "${GITHUB_ACTIONS}" != "true" ]; then
     # Locally: Restart PostgreSQL using brew
     echo "[INFO] Restarting PostgreSQL service locally..."
     brew services restart postgresql@17
+    #/opt/homebrew/opt/postgresql@17/bin/postgres -D /opt/homebrew/var/postgresql@17 -p 26556 &
 else
     # In GitHub Actions: Manually start PostgreSQL with custom config
     LC_ALL="en_US.UTF-8" /opt/homebrew/opt/postgresql@17/bin/postgres \
@@ -283,19 +290,13 @@ done
 sudo -u $(whoami) psql -p $PORT -c "ALTER DATABASE \"$DB_NAME\" OWNER TO \"$DB_USER\";"
 
 echo "[INFO] Database setup complete!"
-# ====================================================================
-# OPTIONAL EXECUTION PERMISSIONS (COMMENTED)
-# ====================================================================
- echo "[INFO] Setting executable permissions for environment scripts"
- chmod +x setup_enviroment/integrity_hash_enviroment || true
- chmod +x file_integrity_scanner_app/macos/start_integrity_hash || true
 
 # ====================================================================
-# ENVIRONMENT SETUP
+# EXECUTION PERMISSIONS
 # ====================================================================
-
-echo "[INFO] Running environment setup script..."
-bash setup_enviroment/integrity_hash_enviroment "$DB_USER" "$DB_PASSWORD" "truststore_mock_value" "ssl_mock_value"
+echo "[INFO] Setting executable permissions for environment scripts"
+chmod +x setup_enviroment/integrity_hash_enviroment || true
+chmod +x file_integrity_scanner_app/macos/start_integrity_hash || true
 
 echo "======================================================"
 echo " INSTALLATION COMPLETE!"
