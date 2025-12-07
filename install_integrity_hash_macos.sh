@@ -7,11 +7,11 @@ set -euo pipefail
 # Run locally with custom DB credentials:
 # Lokalt: DB_USER=myuser DB_PASSWORD=mypassword ./install_integrity_hash_macos.sh
 #
-# Script version: 1.0.2
+# Script version: 1.0.3
 # PostgreSQL target version: 17
 # ======================================================
 
-SCRIPT_VERSION="1.0.2"
+SCRIPT_VERSION="1.0.3"
 PG_TARGET_VERSION="17"
 
 echo "======================================================"
@@ -158,8 +158,28 @@ echo "[INFO] Starting PostgreSQL with new configuration..."
 if [ "${GITHUB_ACTIONS}" != "true" ]; then
     # Locally: Restart PostgreSQL using brew
     echo "[INFO] Restarting PostgreSQL service locally..."
-    brew services restart postgresql@17
-    #/opt/homebrew/opt/postgresql@17/bin/postgres -D /opt/homebrew/var/postgresql@17 -p 26556 &
+    #brew services restart postgresql@17
+
+    # Start PostgreSQL in the background and save the PID
+    echo "[INFO] Starting PostgreSQL with custom configuration..."
+
+    LC_ALL="en_US.UTF-8" /opt/homebrew/opt/postgresql@17/bin/postgres -D /opt/homebrew/var/postgresql@17 -p 26556 &
+
+    PG_PID=$!
+ 
+    # Wait for a few seconds to ensure PostgreSQL has started
+    sleep 5
+ 
+    # Check if PostgreSQL is running by checking the PID
+    if ps -p $PG_PID > /dev/null; then
+      echo "[INFO] PostgreSQL started successfully with PID $PG_PID."
+    else
+       echo "[ERROR] Failed to start PostgreSQL."
+       exit 1
+    fi
+ 
+    # Continue with database setup
+    echo "[INFO] Database setup continues..."
 else
     # In GitHub Actions: Manually start PostgreSQL with custom config
     LC_ALL="en_US.UTF-8" /opt/homebrew/opt/postgresql@17/bin/postgres \
@@ -170,7 +190,6 @@ fi
 # ====================================================================
 # DATABASE USER AND DATABASE SETUP
 # ====================================================================
-
 
 PSQL_CONN="psql -p $PORT -d postgres -tAc"
 
@@ -190,7 +209,7 @@ $PSQL_CONN "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1 ||
 
 echo "[INFO] Creating tables in database '$DB_NAME'..."
 
-psql -p $PORT -d "$DB_NAME" <<'EOF'
+psql -U "$DB_USER" -p $PORT -d "$DB_NAME" <<'EOF'
 CREATE TABLE IF NOT EXISTS "time"(
     id BIGSERIAL PRIMARY KEY,
     created TIMESTAMPTZ NOT NULL,
@@ -282,13 +301,21 @@ EOF
 
 # --- SET TABLE & DB OWNERSHIP ---
 TABLES=(time note file checksum monitored_directory scan scan_summary diff auth user_ license)
+ 
+# Loop through each table and change ownership
+ for t in "${TABLES[@]}"; do
+     # Check if the table is 'time' and add quotes if true
+     if [[ "$t" == "time" ]]; then
+         t="\"$t\""
+     fi
 
-for t in "${TABLES[@]}"; do
-    sudo -u $(whoami) psql -d "$DB_NAME" -p $PORT -c "ALTER TABLE IF EXISTS \"$t\" OWNER TO \"$DB_USER\";"
+     # Use psql with the correct PostgreSQL user and password
+     PGPASSWORD="$DB_PASSWORD" psql -U "$DB_USER" -d "$DB_NAME" -p "$PORT" -c "ALTER TABLE IF EXISTS $t OWNER TO \"$DB_USER\";"
 done
-
-sudo -u $(whoami) psql -p $PORT -c "ALTER DATABASE \"$DB_NAME\" OWNER TO \"$DB_USER\";"
-
+ 
+# Alter database ownership
+PGPASSWORD="$DB_PASSWORD" psql -U "$DB_USER" -d "$DB_NAME" -p "$PORT" -c "ALTER DATABASE \"$DB_NAME\" OWNER TO \"$DB_USER\";"
+ 
 echo "[INFO] Database setup complete!"
 
 # ====================================================================
