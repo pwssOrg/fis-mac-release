@@ -28,6 +28,7 @@ if [ -z "${GITHUB_ACTIONS}" ] || [ "${GITHUB_ACTIONS}" != "true" ]; then
 
     ### --- ASK USER FOR DB CREDENTIALS ---
     echo "Local environment"
+    echo $DB_USER >> $LOG_FILE
 
 else
 
