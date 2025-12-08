@@ -2,12 +2,6 @@
 # Post-installation script
 
 set -e  # Stop script on error
-
-username=$(osascript -e 'tell app "System Events" to display dialog "Ange ditt användarnamn:" default answer ""' -e 'text returned of result')
- 
-# Använd användarnamnet i installationen
-
-echo "Användarnamn är: $username"
  
 echo "[INFO] Installation script running..."
  
