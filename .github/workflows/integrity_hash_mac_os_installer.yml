@@ -63,7 +63,7 @@ jobs:
           mkdir -p payload/usr/local/pwss_installer
 
           # Copy main install script
-          cp install_integrity_hash_macos.sh payload/usr/local/pwss_installer/
+          cp pwss_installer/install_integrity_hash_macos.sh payload/usr/local/pwss_installer/
 
           # Copy setup_enviroment folder
           cp -R setup_enviroment payload/usr/local/pwss_installer/
