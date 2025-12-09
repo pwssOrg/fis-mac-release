@@ -1,0 +1,71 @@
+name: Build IntegrityHash macOS Installer
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-installer:
+    runs-on: macos-latest
+
+    steps:
+      # Checkout repo
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Download DMG artifact from another workflow run
+      - name: Download IntegrityHash.dmg from external run
+        uses: actions/download-artifact@v4
+        with:
+          # Artifact URL: https://github.com/pwssOrg/fis-mac-release-playground/actions/runs/20008700690/artifacts/4791020356
+          # We only need the artifact ID:
+          artifact: IntegrityHash
+          pattern: '*'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 20008700690
+
+      - name: Move DMG into installer directory
+        run: |
+          mkdir -p pwss_installer/dmg
+          mv IntegrityHash.dmg pwss_installer/dmg/IntegrityHash.dmg
+          ls -R pwss_installer
+
+      # Ensure scripts are executable
+      - name: Make install scripts executable
+        run: |
+          chmod +x pwss_installer/install_integrity_hash_macos.sh
+          chmod +x pwss_installer/Scripts/preinstall
+          chmod +x pwss_installer/Scripts/postinstall
+
+      # Build the PKG installer
+      - name: Build Installer
+        run: |
+          mkdir -p payload/usr/local/pwss_installer
+
+          # Copy main installer and dmg folder to package payload
+          cp pwss_installer/install_integrity_hash_macos.sh payload/usr/local/pwss_installer/
+          cp -R pwss_installer/dmg payload/usr/local/pwss_installer/dmg
+
+          # Build the pkg
+          pkgbuild \
+            --root payload \
+            --scripts pwss_installer/Scripts \
+            --identifier com.pwss.integrityhash \
+            --version 1.0.0 \
+            --install-location /usr/local/pwss_installer \
+            IntegrityHashInstaller.pkg
+
+      # Upload final PKG
+      - name: Upload installer package
+        uses: actions/upload-artifact@v4
+        with:
+          name: IntegrityHashInstaller
+          path: IntegrityHashInstaller.pkg
+
+#📁 Repo-struktur workflowet utgår från
+#pwss_installer/
+# ├── install_integrity_hash_macos.sh
+# ├── dmg/
+# │    └── IntegrityHash.dmg   (downloaded automatically)
+# └── Scripts/
+#      ├── preinstall
+#      └── postinstall
