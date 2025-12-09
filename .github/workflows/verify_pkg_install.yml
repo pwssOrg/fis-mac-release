@@ -1,0 +1,46 @@
+name: Test IntegrityHash PKG from Artifact
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-pkg:
+    runs-on: macos-latest
+
+    steps:
+      # 1️⃣ Checkout repo (valfritt)
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ Download PKG artifact (zip) using curl + PAT
+      - name: Download PKG zip artifact
+        env:
+          TOKEN: ${{ secrets.ARTIFACT_TOKEN }}
+        run: |
+          ARTIFACT_URL="https://api.github.com/repos/pwssOrg/fis-mac-release/actions/artifacts/4806342351/zip"
+          curl -L -H "Authorization: Bearer $TOKEN" -o IntegrityHash.zip $ARTIFACT_URL
+          unzip IntegrityHash.zip -d artifact_contents
+
+      # 3️⃣ Find PKG inside extracted files
+      - name: Locate PKG
+        run: |
+          PKG_FILE=$(find artifact_contents -name "*.pkg" | head -1)
+          if [ -z "$PKG_FILE" ]; then
+            echo "ERROR: PKG file not found in artifact!"
+            exit 1
+          fi
+          echo "PKG located at: $PKG_FILE"
+          mv "$PKG_FILE" /tmp/IntegrityHashInstaller.pkg
+
+      # 4️⃣ Test PKG install with mock DB_USER/DB_PASSWORD
+      - name: Verify PKG install
+        env:
+          DB_USER: testuser
+          DB_PASSWORD: testpass
+        run: |
+          mkdir -p /tmp/test-install
+          sudo installer -pkg /tmp/IntegrityHashInstaller.pkg -target /tmp/test-install -verbose
+
+      # 5️⃣ List installed files (optional)
+      - name: List installed files
+        run: ls -R /tmp/test-install
