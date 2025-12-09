@@ -1,59 +1,28 @@
 #!/bin/bash
 # Post-installation script
 
-set -e  # Stop script on error
+set -e  # Exit immediately if a command exits with a non-zero status
+LOG_FILE="/tmp/postinstall_debug.log"
 
-LOG_FILE="/tmp/install_debug.log"
+# Use argument $1 if provided, otherwise fallback to default install directory
+INSTALL_DIR="${1:-/usr/local/pwss_installer}"
+echo "[INFO] Installation directory = $INSTALL_DIR" >> $LOG_FILE
 
-echo "[INFO] \$1 = $1" >> $LOG_FILE
-
-echo "[INFO] ls \$1:" >> $LOG_FILE
-
-ls -l "$1" >> $LOG_FILE
-
-echo "[INFO] ls \$1/.." >> $LOG_FILE
-
-ls -l "$1/.." >> $LOG_FILE
- 
-echo "[INFO] Installation script running..." >> $LOG_FILE
- 
-# Control if installation path exists
-
- if [ -z "$1" ]; then
-
-   echo "[ERROR] No installation directory specified!" >> $LOG_FILE
-
-   exit 1
-
+# Check that required files exist
+if [ ! -f "$INSTALL_DIR/install_integrity_hash_macos.sh" ]; then
+    echo "[ERROR] install_integrity_hash_macos.sh not found!" >> $LOG_FILE
+    exit 1
 fi
 
-echo $1 >> $LOG_FILE
- 
-# Control if necessary files exists
-echo "[INFO] Checking for install_integrity_hash_macos.sh in: $1/../install_integrity_hash_macos.sh" >> $LOG_FILE
- if [ ! -f "$1/../install_integrity_hash_macos.sh" ]; then
-
-   echo "[ERROR] install_integrity_hash_macos.sh not found!" >> $LOG_FILE
-
-   exit 1 >> $LOG_FILE
-
+if [ ! -f "$INSTALL_DIR/dmg/IntegrityHash.dmg" ]; then
+    echo "[ERROR] IntegrityHash.dmg not found!" >> $LOG_FILE
+    exit 1
 fi
 
-echo "[INFO] Checking for IntegrityHash.dmg in: $1/../dmg/IntegrityHash.dmg" >> $LOG_FILE
-if [ ! -f "$1/../dmg/IntegrityHash.dmg" ]; then
+# Run the main installation script
+"$INSTALL_DIR/install_integrity_hash_macos.sh" >> $LOG_FILE
 
-   echo "[ERROR] IntegrityHash.dmg not found!" >> $LOG_FILE
+# Copy the DMG to /Applications
+sudo cp "$INSTALL_DIR/dmg/IntegrityHash.dmg" /Applications/ >> $LOG_FILE
 
-   exit 1 >> $LOG_FILE
-
-fi
-
-echo "[INFO] Run install_integrity_hash_macos.sh" >> $LOG_FILE
-
- "$1/install_integrity_hash_macos.sh" >> $LOG_FILE
- 
-echo "[INFO] Copy IntegrityHash.dmg to /Applications..." >> $LOG_FILE
-
- sudo cp "$1/dmg/IntegrityHash.dmg" /Applications/ >> $LOG_FILE
- 
-echo "[INFO] Installation Complete!" >> $LOG_FILE
+echo "[INFO] Post-install complete." >> $LOG_FILE
