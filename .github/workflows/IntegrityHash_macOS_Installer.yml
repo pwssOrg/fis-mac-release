@@ -28,17 +28,12 @@ jobs:
             https://api.github.com/repos/$REPO/actions/runs/$RUN_ID/artifacts \
             -o artifacts.json
 
-          echo "Finding artifact named 'IntegrityHash'…"
-          ARTIFACT_ID=$(jq '.artifacts[] | select(.name=="IntegrityHash.dmg") | .id' artifacts.json)
+          ARTIFACT_ID=$(jq -r '.artifacts[] | select(.name=="IntegrityHash.dmg") | .id' artifacts.json)
 
           if [ -z "$ARTIFACT_ID" ]; then
-            echo "ERROR: Artifact 'IntegrityHash' not found!"
-            echo "Artifacts available:"
-            cat artifacts.json
+            echo "ERROR: Artifact 'IntegrityHash.dmg' not found!"
             exit 1
           fi
-
-          echo "Artifact ID = $ARTIFACT_ID"
 
           echo "Downloading artifact ZIP…"
           curl -L \
@@ -48,19 +43,33 @@ jobs:
 
           unzip artifact.zip -d artifact_contents
 
-          mkdir -p pwss_installer/dmg
 
-          # Find dmg inside extracted files
-          DMG_PATH=$(find artifact_contents -name "*.dmg" | head -1)
+      - name: Verify DMG hash
+        run: |
+          EXPECTED_HASH="6c803373189a7ab09b5656c8d74f579a9704dd17585b4dc4f00142c87316e792"
+          DMG_FILE=$(find artifact_contents -name "*.dmg" | head -1)
 
-          if [ -z "$DMG_PATH" ]; then
-            echo "ERROR: No DMG found inside the artifact."
+          if [ -z "$DMG_FILE" ]; then
+            echo "ERROR: No DMG found!"
             exit 1
           fi
 
-          echo "DMG found at: $DMG_PATH"
-          cp "$DMG_PATH" pwss_installer/dmg/IntegrityHash.dmg
+          ACTUAL_HASH=$(shasum -a 256 "$DMG_FILE" | awk '{print $1}')
+          echo "Expected: $EXPECTED_HASH"
+          echo "Actual:   $ACTUAL_HASH"
 
+          if [ "$ACTUAL_HASH" != "$EXPECTED_HASH" ]; then
+            echo "ERROR: DMG hash does not match!"
+            exit 1
+          fi
+
+          echo "DMG hash verified successfully."
+
+
+      - name: Copy verified DMG to installer directory
+        run: |
+          mkdir -p pwss_installer/dmg
+          cp "$DMG_FILE" pwss_installer/dmg/IntegrityHash.dmg
           echo "DMG copied to pwss_installer/dmg:"
           ls -l pwss_installer/dmg
 
