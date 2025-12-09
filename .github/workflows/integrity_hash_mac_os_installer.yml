@@ -65,6 +65,9 @@ jobs:
           # Copy main install script
           cp pwss_installer/install_integrity_hash_macos.sh payload/usr/local/pwss_installer/
 
+          # Copy setup_enviroment folder
+          cp -R setup_enviroment payload/usr/local/pwss_installer/
+
           # Copy downloaded DMG
           mkdir -p payload/usr/local/pwss_installer/dmg
           cp "$DMG_FILE" payload/usr/local/pwss_installer/dmg/
@@ -74,6 +77,7 @@ jobs:
 
           # Ensure install scripts are executable
           chmod +x payload/usr/local/pwss_installer/install_integrity_hash_macos.sh
+          chmod +x payload/usr/local/pwss_installer/setup_enviroment/integrity_hash_enviroment
           chmod +x pwss_installer/Scripts/preinstall
           chmod +x pwss_installer/Scripts/postinstall
 
@@ -114,15 +118,17 @@ jobs:
 # pwss_installer/
 # ├── install_integrity_hash_macos.sh
 # ├── dmg/
-# │    └── IntegrityHash.dmg   (downloaded automatically)
+# │   └── IntegrityHash.dmg   (downloaded automatically)
 # ├── Scripts/
-# │    ├── preinstall
-# │    └── postinstall
-# └── psql_files/
-#      ├── psql/
-#      │    ├── cert/
-#      │    │    ├── server.crt
-#      │    │    └── server.key
-#      │    └── pass/
-#      │         └── avocado
-#      └── postgresql.conf
+# │   ├── preinstall
+# │   └── postinstall
+# ├── psql_files/
+# │   ├── psql/
+# │   │   ├── cert/
+# │   │   │   ├── server.crt
+# │   │   │   └── server.key
+# │   │   └── pass/
+# │   │        └── avocado
+# │   └── postgresql.conf
+# └── setup_enviroment/
+#     └── integrity_hash_enviroment
