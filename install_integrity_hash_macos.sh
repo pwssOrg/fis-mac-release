@@ -7,11 +7,11 @@ set -euo pipefail
 # Run locally with custom DB credentials:
 # Lokalt: DB_USER=myuser DB_PASSWORD=mypassword ./install_integrity_hash_macos.sh
 #
-# Script version: 1.0.5
+# Script version: 1.0.8
 # PostgreSQL target version: 17
 # ======================================================
 
-SCRIPT_VERSION="1.0.7"
+SCRIPT_VERSION="1.0.8"
 PG_TARGET_VERSION="17"
 
 echo "======================================================"
@@ -53,17 +53,27 @@ echo "[INFO] Java installation enabled: $INSTALL_JAVA"
 # ====================================================================
 # CHECK HOMEBREW
 # ====================================================================
-if ! command -v brew &>/dev/null; then
-  echo "[ERROR] Homebrew is not installed. Please install Homebrew first."
-  exit 1
-fi
-echo "[INFO] Homebrew detected."
 
-ARCH=$(uname -m)
-if [[ "$ARCH" == "arm64" ]]; then
-  BREW_PREFIX="/opt/homebrew"
+if command -v brew >/dev/null 2>&1; then
+    echo "Homebrew is already installed."
+    echo "Updating Homebrew..."
+    brew update
 else
-  BREW_PREFIX="/usr/local"
+    echo "Homebrew not found. Installing..."
+ 
+    # Install Homebrew (non-interactive)
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+ 
+    # Add Homebrew to PATH depending on architecture
+    if [[ -d "/opt/homebrew/bin" ]]; then
+        # Apple Silicon
+        echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [[ -d "/usr/local/bin" ]]; then
+        # Intel mac
+        echo 'eval "$(/usr/local/bin/brew shellenv)"' >> ~/.zprofile
+        eval "$(/usr/local/bin/brew shellenv)"
+    fi
 fi
 
 # ====================================================================
