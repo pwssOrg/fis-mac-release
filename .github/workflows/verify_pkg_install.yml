@@ -58,7 +58,7 @@ jobs:
       
       - name: Run Post-install (print log file)
         run: |
-          ./postinstall.sh /usr/local/pwss_installer
+         sudo ./postinstall.sh /usr/local/pwss_installer
           cat /tmp/postinstall_debug.log
       
 
