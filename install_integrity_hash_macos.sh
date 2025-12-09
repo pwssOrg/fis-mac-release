@@ -169,7 +169,11 @@ echo "[INFO] SSL certificates and configuration copied successfully."
 # ENVIRONMENT SETUP
 # ====================================================================
 echo "[INFO] Running environment setup script..."
-bash setup_enviroment/integrity_hash_enviroment "$DB_USER" "$DB_PASSWORD" "mock_truststore" "mock_ssl"
+# Use GitHub secrets if available, otherwise fall back to defaults
+TRUSTSTORE="${TRUSTSTORE_FIS_GUI:-mock_truststore}"
+SSL_FILE="${ssl_file_integrity_scanner:-mock_ssl}"
+
+bash setup_enviroment/integrity_hash_enviroment "$DB_USER" "$DB_PASSWORD" "$TRUSTSTORE" "$SSL_FILE"
 
 # ====================================================================
 # START POSTGRESQL
