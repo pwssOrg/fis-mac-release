@@ -17,7 +17,7 @@ jobs:
         env:
           TOKEN: ${{ secrets.ARTIFACT_TOKEN }}
         run: |
-          ARTIFACT_URL="https://api.github.com/repos/pwssOrg/fis-mac-release/actions/artifacts/4806818677/zip"
+          ARTIFACT_URL="https://api.github.com/repos/pwssOrg/fis-mac-release/actions/artifacts/4806869336/zip"
           curl -L -H "Authorization: Bearer $TOKEN" -o IntegrityHash.zip $ARTIFACT_URL
           unzip IntegrityHash.zip -d artifact_contents
 
@@ -36,7 +36,7 @@ jobs:
       # 4️⃣ Verify PKG hash
       - name: Verify PKG hash
         run: |
-          EXPECTED_HASH="e7db334f1a2aef1f3f720cd898dee9653328600036e55fa3a31fddf9a382610c"
+          EXPECTED_HASH="9c23b6081de6f86f5e64726190e387821d59c1c4a32046d1ba6ae2b70b4336cd"
           PKG_FILE=$(find artifact_contents -name "*.pkg" | head -1)
 
           if [ -z "$PKG_FILE" ]; then
