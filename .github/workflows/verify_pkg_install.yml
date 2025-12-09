@@ -54,7 +54,7 @@ jobs:
           DB_PASSWORD: testpass
         run: |
           mkdir -p /tmp/test-install
-          sudo installer -pkg "$PKG_PATH" -target /tmp/test-install -verbose
+          sudo installer -pkg "$PKG_PATH" -target /tmp/test-install -verboseR
 
       # 6️⃣ List installed files
       - name: List installed files
