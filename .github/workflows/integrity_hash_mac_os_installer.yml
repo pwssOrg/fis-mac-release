@@ -6,9 +6,10 @@ on:
 jobs:
   build-installer:
     runs-on: macos-latest
+
     env:
-       SSL_FILE_INTEGRITY_SCANNER: ${{ secrets.SSL_FILE_INTEGRITY_SCANNER }}
-       TRUSTSTORE_FIS_GUI: ${{ secrets.TRUSTSTORE_FIS_GUI }}
+      SSL_FILE_INTEGRITY_SCANNER: ${{ secrets.SSL_FILE_INTEGRITY_SCANNER }}
+      TRUSTSTORE_FIS_GUI: ${{ secrets.TRUSTSTORE_FIS_GUI }}
 
     steps:
       # ----------------------------------------------------------
@@ -34,8 +35,12 @@ jobs:
             -o artifacts.json
 
           ARTIFACT_ID=$(jq -r '.artifacts[] | select(.name=="IntegrityHash.dmg") | .id' artifacts.json)
-          if [ -z "$ARTIFACT_ID" ]; then exit 1; fi
+          if [ -z "$ARTIFACT_ID" ]; then
+            echo "Artifact not found!"
+            exit 1
+          fi
 
+          echo "Downloading artifact ID: $ARTIFACT_ID"
           curl -L \
             -H "Authorization: Bearer $TOKEN" \
             -o artifact.zip \
@@ -50,43 +55,55 @@ jobs:
         run: |
           EXPECTED_HASH="2ddb1f148f533855afea27564a581dd06fd9d7bd5e95cea372b61a169676b337"
           DMG_FILE=$(find artifact_contents -name "*.dmg" | head -1)
-          if [ -z "$DMG_FILE" ]; then exit 1; fi
+
+          if [ -z "$DMG_FILE" ]; then
+            echo "DMG file not found!"
+            exit 1
+          fi
+
           echo "DMG_FILE=$DMG_FILE" >> $GITHUB_ENV
+
           ACTUAL_HASH=$(shasum -a 256 "$DMG_FILE" | awk '{print $1}')
-          if [ "$ACTUAL_HASH" != "$EXPECTED_HASH" ]; then exit 1; fi
+          if [ "$ACTUAL_HASH" != "$EXPECTED_HASH" ]; then
+            echo "DMG hash mismatch!"
+            exit 1
+          fi
 
       # ----------------------------------------------------------
       # Prepare installer payload
       # ----------------------------------------------------------
       - name: Prepare installer payload
         run: |
+          # Create correct root-relative payload
           mkdir -p payload/usr/local/pwss_installer
 
-          # Copy main install script
+          # Copy installer script
           cp pwss_installer/install_integrity_hash_macos.sh payload/usr/local/pwss_installer/
 
-          # Copy setup_enviroment folder
+          # Copy setup_environment folder
           cp -R setup_enviroment payload/usr/local/pwss_installer/
 
-          # Copy downloaded DMG
+          # Copy DMG
           mkdir -p payload/usr/local/pwss_installer/dmg
           cp "$DMG_FILE" payload/usr/local/pwss_installer/dmg/
 
-          # Copy psql_files (cert, key, postgresql.conf, passphrase script)
+          # Copy PostgreSQL-related files
           cp -R psql_files payload/usr/local/pwss_installer/
 
-          # Ensure install scripts are executable
+          # Ensure executable permissions inside payload
           chmod +x payload/usr/local/pwss_installer/install_integrity_hash_macos.sh
           chmod +x payload/usr/local/pwss_installer/setup_enviroment/integrity_hash_enviroment
+
+          # Ensure installer scripts in repo are executable BEFORE pkgbuild reads them
           chmod +x pwss_installer/Scripts/preinstall
           chmod +x pwss_installer/Scripts/postinstall
 
       # ----------------------------------------------------------
-      # Build PKG installer with dynamic PGDATA handling
+      # Build PKG installer
       # ----------------------------------------------------------
       - name: Build Installer
         run: |
-          # Detect architecture
+          # Architecture detection for optional later use
           ARCH=$(uname -m)
           if [[ "$ARCH" == "arm64" ]]; then
             PGDATA_DIR="/opt/homebrew/var/postgresql@17"
@@ -97,12 +114,16 @@ jobs:
           echo "Architecture: $ARCH"
           echo "PostgreSQL data directory: $PGDATA_DIR"
 
+          # Optional: export PGDATA for installer scripts
+          echo "PGDATA_DIR=$PGDATA_DIR" > payload/usr/local/pwss_installer/pgdata.conf
+
+          # Build package correctly
           pkgbuild \
             --root payload \
             --scripts pwss_installer/Scripts \
             --identifier com.pwss.integrityhash \
             --version 1.0.0 \
-            --install-location /usr/local/pwss_installer \
+            --install-location / \
             IntegrityHashInstaller.pkg
 
       # ----------------------------------------------------------
