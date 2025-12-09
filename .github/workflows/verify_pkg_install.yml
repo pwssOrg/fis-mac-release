@@ -55,6 +55,12 @@ jobs:
         run: |
           mkdir -p /tmp/test-install
           sudo installer -pkg "$PKG_PATH" -target /tmp/test-install -verboseR
+      
+      - name: Run Post-install (print log file)
+        run: |
+          ./postinstall.sh /usr/local/pwss_installer
+          cat /tmp/postinstall_debug.log
+      
 
       # 6️⃣ List installed files
       - name: List installed files
