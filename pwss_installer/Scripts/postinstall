@@ -23,6 +23,6 @@ fi
 "$INSTALL_DIR/install_integrity_hash_macos.sh" >> $LOG_FILE
 
 # Copy the DMG to /Applications
-sudo cp "$INSTALL_DIR/dmg/IntegrityHash.dmg" /Applications/ >> $LOG_FILE
+cp "$INSTALL_DIR/dmg/IntegrityHash.dmg" /Applications/ >> $LOG_FILE
 
 echo "[INFO] Post-install complete." >> $LOG_FILE
