@@ -32,7 +32,7 @@ if [ -f "$INSTALL_DIR/dmg/IntegrityHash.dmg" ]; then
     echo "[INFO] Copying IntegrityHash.dmg to /Applications" >> $LOG_FILE
     cp "$INSTALL_DIR/dmg/IntegrityHash.dmg" /Applications/ >> $LOG_FILE 2>&1 || {
         echo "[ERROR] Failed to copy IntegrityHash.dmg to /Applications" >> $LOG_FILE
-        exit 1
+        #exit 1
     }
 else
     echo "[WARN] DMG file not found, skipping copy" >> $LOG_FILE
