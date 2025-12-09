@@ -6,6 +6,9 @@ on:
 jobs:
   build-installer:
     runs-on: macos-latest
+    env:
+       SSL_FILE_INTEGRITY_SCANNER: ${{ secrets.SSL_FILE_INTEGRITY_SCANNER }}
+       TRUSTSTORE_FIS_GUI: ${{ secrets.TRUSTSTORE_FIS_GUI }}
 
     steps:
       # ----------------------------------------------------------
