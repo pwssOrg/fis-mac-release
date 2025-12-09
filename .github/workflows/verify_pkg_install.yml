@@ -32,7 +32,30 @@ jobs:
           echo "PKG located at: $PKG_FILE"
           mv "$PKG_FILE" /tmp/IntegrityHashInstaller.pkg
 
-      # 4️⃣ Test PKG install with mock DB_USER/DB_PASSWORD
+
+      # 4️⃣ Verify PKG hash
+      - name: Verify PKG hash
+        run: |
+          EXPECTED_HASH="c6256b477e64799d14bf90829da47be89e0be4e7d14ea820d4efdd221c5d7478"
+          PKG_FILE=$(find artifact_contents -name "*.pkg" | head -1)
+
+          if [ -z "$PKG_FILE" ]; then
+            echo "ERROR: No PKG found!"
+            exit 1
+          fi
+
+          ACTUAL_HASH=$(shasum -a 256 "$PKG_FILE" | awk '{print $1}')
+          echo "Expected: $EXPECTED_HASH"
+          echo "Actual:   $ACTUAL_HASH"
+
+          if [ "$ACTUAL_HASH" != "$EXPECTED_HASH" ]; then
+            echo "ERROR: PKG hash does not match!"
+            exit 1
+          fi
+
+          echo "PKG hash verified successfully."
+
+      # 5️⃣ Test PKG install with mock DB_USER/DB_PASSWORD
       - name: Verify PKG install
         env:
           DB_USER: testuser
@@ -41,6 +64,6 @@ jobs:
           mkdir -p /tmp/test-install
           sudo installer -pkg /tmp/IntegrityHashInstaller.pkg -target /tmp/test-install -verbose
 
-      # 5️⃣ List installed files
+      # 6️⃣ List installed files
       - name: List installed files
         run: ls -R /tmp/test-install
