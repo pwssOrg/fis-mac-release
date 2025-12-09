@@ -12,40 +12,77 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Download DMG artifact from another workflow run
-      - name: Download IntegrityHash.dmg from external run
-        uses: actions/download-artifact@v4
-        with:
-          # Artifact URL: https://github.com/pwssOrg/fis-mac-release-playground/actions/runs/20008700690/artifacts/4791020356
-          # We only need the artifact ID:
-          artifact: IntegrityHash
-          pattern: '*'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: 20008700690
-
-      - name: Move DMG into installer directory
+      # ----------------------------------------------------------
+      # Download DMG artifact using API + PAT (works cross-run)
+      # ----------------------------------------------------------
+      - name: Download IntegrityHash.dmg from external workflow run
+        env:
+          RUN_ID: "20008700690"
+          REPO: "pwssOrg/fis-mac-release-playground"
+          TOKEN: ${{ secrets.ARTIFACT_TOKEN }}
         run: |
-          mkdir -p pwss_installer/dmg
-          mv IntegrityHash.dmg pwss_installer/dmg/IntegrityHash.dmg
-          ls -R pwss_installer
+          echo "Fetching artifact list…"
+          curl -sL \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $TOKEN" \
+            https://api.github.com/repos/$REPO/actions/runs/$RUN_ID/artifacts \
+            -o artifacts.json
 
+          echo "Finding artifact named 'IntegrityHash'…"
+          ARTIFACT_ID=$(jq '.artifacts[] | select(.name=="IntegrityHash") | .id' artifacts.json)
+
+          if [ -z "$ARTIFACT_ID" ]; then
+            echo "ERROR: Artifact 'IntegrityHash' not found!"
+            echo "Artifacts available:"
+            cat artifacts.json
+            exit 1
+          fi
+
+          echo "Artifact ID = $ARTIFACT_ID"
+
+          echo "Downloading artifact ZIP…"
+          curl -L \
+            -H "Authorization: Bearer $TOKEN" \
+            -o artifact.zip \
+            https://api.github.com/repos/$REPO/actions/artifacts/$ARTIFACT_ID/zip
+
+          unzip artifact.zip -d artifact_contents
+
+          mkdir -p pwss_installer/dmg
+
+          # Find dmg inside extracted files
+          DMG_PATH=$(find artifact_contents -name "*.dmg" | head -1)
+
+          if [ -z "$DMG_PATH" ]; then
+            echo "ERROR: No DMG found inside the artifact."
+            exit 1
+          fi
+
+          echo "DMG found at: $DMG_PATH"
+          cp "$DMG_PATH" pwss_installer/dmg/IntegrityHash.dmg
+
+          echo "DMG copied to pwss_installer/dmg:"
+          ls -l pwss_installer/dmg
+
+      # ----------------------------------------------------------
       # Ensure scripts are executable
+      # ----------------------------------------------------------
       - name: Make install scripts executable
         run: |
           chmod +x pwss_installer/install_integrity_hash_macos.sh
           chmod +x pwss_installer/Scripts/preinstall
           chmod +x pwss_installer/Scripts/postinstall
 
+      # ----------------------------------------------------------
       # Build the PKG installer
+      # ----------------------------------------------------------
       - name: Build Installer
         run: |
           mkdir -p payload/usr/local/pwss_installer
 
-          # Copy main installer and dmg folder to package payload
           cp pwss_installer/install_integrity_hash_macos.sh payload/usr/local/pwss_installer/
           cp -R pwss_installer/dmg payload/usr/local/pwss_installer/dmg
 
-          # Build the pkg
           pkgbuild \
             --root payload \
             --scripts pwss_installer/Scripts \
@@ -54,7 +91,9 @@ jobs:
             --install-location /usr/local/pwss_installer \
             IntegrityHashInstaller.pkg
 
+      # ----------------------------------------------------------
       # Upload final PKG
+      # ----------------------------------------------------------
       - name: Upload installer package
         uses: actions/upload-artifact@v4
         with:
