@@ -1,38 +1,28 @@
 #!/bin/bash
+# Pre-installation script
 
- # Pre-installation script: This will run before the installation starts
- 
-# Ask the user for their username using AppleScript
+set -e  # Exit immediately if a command exits with a non-zero status
+LOG_FILE="/tmp/preinstall_debug.log"
 
- username=$(osascript -e 'tell app "System Events" to display dialog "Please enter your username:" default answer ""' -e 'text returned of result')
- 
-# Ask the user for their password using AppleScript (hide input for security)
+# If DB_USER and DB_PASSWORD already exist (e.g., in CI tests), use them
+if [ -n "$DB_USER" ] && [ -n "$DB_PASSWORD" ]; then
+    echo "[INFO] Using environment variables for user credentials" >> $LOG_FILE
+else
+    # Otherwise, ask the user for credentials via dialog
+    DB_USER=$(osascript -e 'tell app "System Events" to display dialog "Please enter your username:" default answer ""' -e 'text returned of result')
+    DB_PASSWORD=$(osascript -e 'tell app "System Events" to display dialog "Please enter your password:" default answer "" with hidden answer' -e 'text returned of result')
+    
+    # Validate input
+    if [ -z "$DB_USER" ] || [ -z "$DB_PASSWORD" ]; then
+        echo "[ERROR] Username or password not entered. Exiting installation." >> $LOG_FILE
+        exit 1
+    fi
+fi
 
- password=$(osascript -e 'tell app "System Events" to display dialog "Please enter your password:" default answer "" with hidden answer' -e 'text returned of result')
- 
-# Check if the user input is empty (i.e., they didn't provide anything)
+# Export the credentials for use by subsequent scripts
+export DB_USER
+export DB_PASSWORD
 
- if [ -z "$username" ] || [ -z "$password" ]; then
-
-   echo "[ERROR] Username or password not entered. Exiting installation."
-
-   exit 1
-
- fi
- 
-# Save the username and password to a temporary file or environment variable
-
- echo "Username: $username"
-
- echo "Password: $password"  # WARNING: It's risky to log passwords in plain text, this is just an example
- 
-# Save them in a temp file (Be cautious about storing passwords in plain text)
-
-export DB_USER=$username
-export DB_PASSWORD=$password
-
-echo "password=$password" >> /tmp/user_credentials.txt
- 
-# Proceed with the installation after gathering user input
-
- echo "[INFO] Proceeding with installation..."
+# Log info
+echo "[INFO] DB_USER=$DB_USER" >> $LOG_FILE
+echo "[INFO] Pre-install complete." >> $LOG_FILE
