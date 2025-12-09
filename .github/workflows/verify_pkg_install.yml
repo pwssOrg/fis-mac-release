@@ -8,20 +8,20 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      # 1️⃣ Checkout repo
+      # 1️⃣ Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Download PKG artifact (zip) using curl + PAT
+      # 2️⃣ Download PKG artifact (zip) using PAT
       - name: Download PKG zip artifact
         env:
           TOKEN: ${{ secrets.ARTIFACT_TOKEN }}
         run: |
           ARTIFACT_URL="https://api.github.com/repos/pwssOrg/fis-mac-release/actions/artifacts/4806869336/zip"
           curl -L -H "Authorization: Bearer $TOKEN" -o IntegrityHash.zip $ARTIFACT_URL
-          unzip IntegrityHash.zip -d artifact_contents
+          unzip -o IntegrityHash.zip -d artifact_contents
 
-      # 3️⃣ Find PKG inside extracted files
+      # 3️⃣ Locate PKG and save path
       - name: Locate PKG
         run: |
           PKG_FILE=$(find artifact_contents -name "*.pkg" | head -1)
@@ -31,20 +31,13 @@ jobs:
           fi
           echo "PKG located at: $PKG_FILE"
           mv "$PKG_FILE" /tmp/IntegrityHashInstaller.pkg
-
+          echo "PKG_PATH=/tmp/IntegrityHashInstaller.pkg" >> $GITHUB_ENV
 
       # 4️⃣ Verify PKG hash
       - name: Verify PKG hash
         run: |
           EXPECTED_HASH="9c23b6081de6f86f5e64726190e387821d59c1c4a32046d1ba6ae2b70b4336cd"
-          PKG_FILE=$(find artifact_contents -name "*.pkg" | head -1)
-
-          if [ -z "$PKG_FILE" ]; then
-            echo "ERROR: No PKG found!"
-            exit 1
-          fi
-
-          ACTUAL_HASH=$(shasum -a 256 "$PKG_FILE" | awk '{print $1}')
+          ACTUAL_HASH=$(shasum -a 256 "$PKG_PATH" | awk '{print $1}')
           echo "Expected: $EXPECTED_HASH"
           echo "Actual:   $ACTUAL_HASH"
 
@@ -52,7 +45,6 @@ jobs:
             echo "ERROR: PKG hash does not match!"
             exit 1
           fi
-
           echo "PKG hash verified successfully."
 
       # 5️⃣ Test PKG install with mock DB_USER/DB_PASSWORD
@@ -62,7 +54,7 @@ jobs:
           DB_PASSWORD: testpass
         run: |
           mkdir -p /tmp/test-install
-          sudo installer -pkg /tmp/IntegrityHashInstaller.pkg -target /tmp/test-install -verbose
+          sudo installer -pkg "$PKG_PATH" -target /tmp/test-install -verbose
 
       # 6️⃣ List installed files
       - name: List installed files
