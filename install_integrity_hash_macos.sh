@@ -11,7 +11,7 @@ set -euo pipefail
 # PostgreSQL target version: 17
 # ======================================================
 
-SCRIPT_VERSION="1.0.5"
+SCRIPT_VERSION="1.0.6"
 PG_TARGET_VERSION="17"
 
 echo "======================================================"
