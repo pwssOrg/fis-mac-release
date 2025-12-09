@@ -29,7 +29,7 @@ jobs:
             -o artifacts.json
 
           echo "Finding artifact named 'IntegrityHash'…"
-          ARTIFACT_ID=$(jq '.artifacts[] | select(.name=="IntegrityHash") | .id' artifacts.json)
+          ARTIFACT_ID=$(jq '.artifacts[] | select(.name=="IntegrityHash.dmg") | .id' artifacts.json)
 
           if [ -z "$ARTIFACT_ID" ]; then
             echo "ERROR: Artifact 'IntegrityHash' not found!"
