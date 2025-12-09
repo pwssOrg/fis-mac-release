@@ -1,49 +1,39 @@
 #!/bin/bash
 # Post-installation script
+set -ex
 
 LOG_FILE="/tmp/postinstall_debug.log"
-exec > >(tee -a "$LOG_FILE") 2>&1
-set -ex  # echo commands + exit on error
 
-echo "[INFO] Postinstall started at $(date)"
 
-# Use argument $1 if provided, otherwise fallback to default install directory
+trap 'echo "[INFO] Postinstall ended at $(date)" >> $LOG_FILE' EXIT
+
+echo "[INFO] Postinstall started at $(date)" >> $LOG_FILE
+
 INSTALL_DIR="${1:-/usr/local/pwss_installer}"
-echo "[INFO] Installation directory = $INSTALL_DIR"
+echo "[INFO] Installation directory = $INSTALL_DIR" >> $LOG_FILE
 
-# List contents for debugging
-echo "[INFO] Listing files in $INSTALL_DIR:"
-ls -la "$INSTALL_DIR"
-
-# Check that required files exist
 if [ ! -f "$INSTALL_DIR/install_integrity_hash_macos.sh" ]; then
-    echo "[ERROR] install_integrity_hash_macos.sh not found!"
+    echo "[ERROR] install_integrity_hash_macos.sh not found!" >> $LOG_FILE
     exit 1
 fi
 
 if [ ! -f "$INSTALL_DIR/dmg/IntegrityHash.dmg" ]; then
-    echo "[ERROR] IntegrityHash.dmg not found!"
+    echo "[ERROR] IntegrityHash.dmg not found!" >> $LOG_FILE
     exit 1
 fi
 
-chmod +x "$INSTALL_DIR/install_integrity_hash_macos.sh"
-
-# Run the main installation script
-echo "[INFO] Running main install script..."
-"$INSTALL_DIR/install_integrity_hash_macos.sh" || {
-    echo "[ERROR] install_integrity_hash_macos.sh failed!"
+echo "[INFO] Running main install script..." >> $LOG_FILE
+"$INSTALL_DIR/install_integrity_hash_macos.sh" >> $LOG_FILE 2>&1 || {
+    echo "[ERROR] install_integrity_hash_macos.sh failed!" >> $LOG_FILE
     exit 1
 }
 
-# Copy the DMG to /Applications
 if [ -f "$INSTALL_DIR/dmg/IntegrityHash.dmg" ]; then
-    echo "[INFO] Copying IntegrityHash.dmg to /Applications"
-    cp "$INSTALL_DIR/dmg/IntegrityHash.dmg" /Applications/ || {
-        echo "[ERROR] Failed to copy IntegrityHash.dmg to /Applications"
+    echo "[INFO] Copying IntegrityHash.dmg to /Applications" >> $LOG_FILE
+    cp "$INSTALL_DIR/dmg/IntegrityHash.dmg" /Applications/ >> $LOG_FILE 2>&1 || {
+        echo "[ERROR] Failed to copy IntegrityHash.dmg to /Applications" >> $LOG_FILE
         exit 1
     }
 else
-    echo "[WARN] DMG file not found, skipping copy"
+    echo "[WARN] DMG file not found, skipping copy" >> $LOG_FILE
 fi
-
-echo "[INFO] Post-install complete at $(date)"
