@@ -46,7 +46,9 @@ jobs:
 
       - name: Verify DMG hash
         run: |
-          EXPECTED_HASH="6c803373189a7ab09b5656c8d74f579a9704dd17585b4dc4f00142c87316e792"
+          # Zip file Hash=6c803373189a7ab09b5656c8d74f579a9704dd17585b4dc4f00142c87316e792
+          EXPECTED_HASH="2ddb1f148f533855afea27564a581dd06fd9d7bd5e95cea372b61a169676b337" # DMG Hash
+          
           DMG_FILE=$(find artifact_contents -name "*.dmg" | head -1)
 
           if [ -z "$DMG_FILE" ]; then
