@@ -119,12 +119,12 @@ jobs:
 
           # Build package correctly
           pkgbuild \
-            --root payload \
-            --scripts pwss_installer/Scripts \
-            --identifier com.pwss.integrityhash \
-            --version 1.0.0 \
-            --install-location / \
-            IntegrityHashInstaller.pkg
+          --root payload/usr/local/pwss_installer \
+          --install-location /usr/local/pwss_installer \
+          --scripts pwss_installer/Scripts \
+          --identifier com.pwss.integrityhash \
+          --version 1.0.0 \
+          IntegrityHashInstaller.pkg
 
       # ----------------------------------------------------------
       # Upload final PKG
