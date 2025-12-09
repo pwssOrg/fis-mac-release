@@ -17,7 +17,7 @@ jobs:
         env:
           TOKEN: ${{ secrets.ARTIFACT_TOKEN }}
         run: |
-          ARTIFACT_URL="https://api.github.com/repos/pwssOrg/fis-mac-release/actions/artifacts/4807213767/zip"
+          ARTIFACT_URL="https://api.github.com/repos/pwssOrg/fis-mac-release/actions/artifacts/4807277225/zip"
           curl -L -H "Authorization: Bearer $TOKEN" -o IntegrityHash.zip $ARTIFACT_URL
           unzip -o IntegrityHash.zip -d artifact_contents
 
@@ -36,7 +36,7 @@ jobs:
       # 4️⃣ Verify PKG hash
       - name: Verify PKG hash
         run: |
-          EXPECTED_HASH="e2bac99cf7298fb8002715705e135b8784b222faf3f4b4331900b2a381da0fa7"
+          EXPECTED_HASH="16faf38631191c3bc49b9417e14e667f162423d5d2baf31b5a008245f6f310bf"
           ACTUAL_HASH=$(shasum -a 256 "$PKG_PATH" | awk '{print $1}')
           echo "Expected: $EXPECTED_HASH"
           echo "Actual:   $ACTUAL_HASH"
@@ -58,9 +58,8 @@ jobs:
       
       - name: Run Post-install (print log file)
         run: |
-         sudo ./postinstall.sh /usr/local/pwss_installer
+          ./postinstall.sh /usr/local/pwss_installer
           cat /tmp/postinstall_debug.log
-      
 
       # 6️⃣ List installed files
       - name: List installed files
