@@ -11,7 +11,7 @@ set -euo pipefail
 # PostgreSQL target version: 17
 # ======================================================
 
-SCRIPT_VERSION="1.0.6"
+SCRIPT_VERSION="1.0.7"
 PG_TARGET_VERSION="17"
 
 echo "======================================================"
@@ -26,13 +26,9 @@ GITHUB_ACTIONS="${GITHUB_ACTIONS:-false}"
 # Detect GitHub Actions environment
 if [ -z "${GITHUB_ACTIONS}" ] || [ "${GITHUB_ACTIONS}" != "true" ]; then
 
-    ### --- ASK USER FOR DB CREDENTIALS ---
 
-    read -p "Enter database user: " DB_USER
 
-    read -sp "Enter database password: " DB_PASSWORD
-
-    echo ""
+    echo "Starting PWSS Installation!"
 
 else
 
