@@ -1,8 +1,9 @@
 #!/bin/bash
 # Post-installation script
-
-set -e  # Exit immediately if a command exits with a non-zero status
+set -ex  # echo commands + exit on error
 LOG_FILE="/tmp/postinstall_debug.log"
+
+echo "[INFO] Postinstall started at $(date)" >> $LOG_FILE
 
 # Use argument $1 if provided, otherwise fallback to default install directory
 INSTALL_DIR="${1:-/usr/local/pwss_installer}"
@@ -20,9 +21,21 @@ if [ ! -f "$INSTALL_DIR/dmg/IntegrityHash.dmg" ]; then
 fi
 
 # Run the main installation script
-"$INSTALL_DIR/install_integrity_hash_macos.sh" >> $LOG_FILE
+echo "[INFO] Running main install script..." >> $LOG_FILE
+"$INSTALL_DIR/install_integrity_hash_macos.sh" >> $LOG_FILE 2>&1 || {
+    echo "[ERROR] install_integrity_hash_macos.sh failed!" >> $LOG_FILE
+    exit 1
+}
 
 # Copy the DMG to /Applications
-cp "$INSTALL_DIR/dmg/IntegrityHash.dmg" /Applications/ >> $LOG_FILE
+if [ -f "$INSTALL_DIR/dmg/IntegrityHash.dmg" ]; then
+    echo "[INFO] Copying IntegrityHash.dmg to /Applications" >> $LOG_FILE
+    cp "$INSTALL_DIR/dmg/IntegrityHash.dmg" /Applications/ >> $LOG_FILE 2>&1 || {
+        echo "[ERROR] Failed to copy IntegrityHash.dmg to /Applications" >> $LOG_FILE
+        exit 1
+    }
+else
+    echo "[WARN] DMG file not found, skipping copy" >> $LOG_FILE
+fi
 
-echo "[INFO] Post-install complete." >> $LOG_FILE
+echo "[INFO] Post-install complete at $(date)" >> $LOG_FILE
