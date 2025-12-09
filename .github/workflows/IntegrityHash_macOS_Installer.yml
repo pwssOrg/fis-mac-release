@@ -119,7 +119,7 @@ jobs:
           name: IntegrityHashInstaller
           path: IntegrityHashInstaller.pkg
 
-#📁Repo-struktur workflowet utgår från
+#📁 Repository structure that the workflow is based on
 #pwss_installer/
 # ├── install_integrity_hash_macos.sh
 # ├── dmg/
