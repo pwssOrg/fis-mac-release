@@ -6,6 +6,10 @@ on:
 jobs:
   test-pkg:
     runs-on: macos-latest
+    env:
+      DB_USER: The_Dodo_Bird
+      DB_PASSWORD: happy_smiley
+
 
     steps:
       # 1️⃣ Checkout repository
