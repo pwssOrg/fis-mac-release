@@ -8,7 +8,9 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      # Checkout repo
+      # ----------------------------------------------------------
+      # Checkout repository
+      # ----------------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -43,10 +45,11 @@ jobs:
 
           unzip artifact.zip -d artifact_contents
 
-
+      # ----------------------------------------------------------
+      # Verify DMG hash
+      # ----------------------------------------------------------
       - name: Verify DMG hash
         run: |
-          # Zip file Hash=6c803373189a7ab09b5656c8d74f579a9704dd17585b4dc4f00142c87316e792
           EXPECTED_HASH="2ddb1f148f533855afea27564a581dd06fd9d7bd5e95cea372b61a169676b337" # DMG Hash
           
           DMG_FILE=$(find artifact_contents -name "*.dmg" | head -1)
@@ -55,6 +58,9 @@ jobs:
             echo "ERROR: No DMG found!"
             exit 1
           fi
+
+          # Export DMG_FILE to env for next steps
+          echo "DMG_FILE=$DMG_FILE" >> $GITHUB_ENV
 
           ACTUAL_HASH=$(shasum -a 256 "$DMG_FILE" | awk '{print $1}')
           echo "Expected: $EXPECTED_HASH"
@@ -67,7 +73,9 @@ jobs:
 
           echo "DMG hash verified successfully."
 
-
+      # ----------------------------------------------------------
+      # Copy verified DMG to installer directory
+      # ----------------------------------------------------------
       - name: Copy verified DMG to installer directory
         run: |
           mkdir -p pwss_installer/dmg
