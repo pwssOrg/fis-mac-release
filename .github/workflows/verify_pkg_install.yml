@@ -58,12 +58,13 @@ jobs:
           DB_PASSWORD: testpass
         run: |
           mkdir -p /tmp/test-install
-          sudo installer -pkg "$PKG_PATH" -target /tmp/test-install -verboseR
+          sudo installer -pkg "$PKG_PATH" -target /tmp/test-install -verboseR -dumplog | tee installer.log
       
-      - name: Run Post-install (print log file)
-        run: |
-          ./postinstall.sh /usr/local/pwss_installer
-          cat /tmp/postinstall_debug.log
+      - name: Upload installer log
+        uses: actions/upload-artifact@v4
+        with:
+           name: installer-log
+           path: installer.log
 
       # 6️⃣ List installed files
       - name: List installed files
