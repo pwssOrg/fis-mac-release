@@ -1,4 +1,4 @@
-name: Test IntegrityHash PKG Installer for IntegrityHash
+name: Test PKG Installer for IntegrityHash
 
 on:
   workflow_dispatch:
