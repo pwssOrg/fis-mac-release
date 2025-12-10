@@ -1,4 +1,4 @@
-name: Test IntegrityHash PKG from Artifact
+name: Test IntegrityHash PKG
 
 on:
   workflow_dispatch:
