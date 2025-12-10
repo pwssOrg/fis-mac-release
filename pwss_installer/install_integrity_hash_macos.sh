@@ -1,17 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+exec 1>&2 # Skickar all standard output till stderr
+set -x ## Gör Bash mer verbose
+
 # ======================================================
 # PWSS Integrity Hash Installer – macOS (CI Mode)
 # ======================================================
 # Run locally with custom DB credentials:
 # Lokalt: DB_USER=myuser DB_PASSWORD=mypassword ./install_integrity_hash_macos.sh
 #
-# Script version: 1.0.8
+# Script version: 1.0.9
 # PostgreSQL target version: 17
 # ======================================================
 
-SCRIPT_VERSION="1.0.8"
+SCRIPT_VERSION="1.0.9"
 PG_TARGET_VERSION="17"
 
 echo "======================================================"
@@ -132,14 +135,14 @@ echo "[INFO] Setting up SSL certificates and passphrase script..."
 sudo mkdir -p /usr/local/etc/ssl/private
 
 # Copy certificate and key
-sudo cp psql_files/psql/cert/server.crt "$PG_DATA_DIR/server.crt"
+sudo cp pwss_installer/psql_files/psql/cert/server.crt "$PG_DATA_DIR/server.crt"
 sudo chown "$(whoami)" "$PG_DATA_DIR/server.crt"
 
 sudo cp "$PG_DATA_DIR/server.crt" "$PG_DATA_DIR_HOMEBREW/server.crt"
 sudo chown "$(whoami)" "$PG_DATA_DIR_HOMEBREW/server.crt"
 
 # Set secure permissions for key
-sudo cp psql_files/psql/cert/server.key "$PG_DATA_DIR/server.key"
+sudo cp pwss_installer/psql_files/psql/cert/server.key "$PG_DATA_DIR/server.key"
 sudo chmod 600 "$PG_DATA_DIR/server.key"
 sudo chown "$(whoami)" "$PG_DATA_DIR/server.key"
 
@@ -148,7 +151,7 @@ sudo chmod 600 "$PG_DATA_DIR_HOMEBREW/server.key"
 sudo chown "$(whoami)" "$PG_DATA_DIR_HOMEBREW/server.key"
 
 # Copy passphrase script with sudo and make executable
-sudo cp psql_files/psql/pass/avocado "$PG_DATA_DIR/ssl_passphrase.sh"
+sudo cp pwss_installer/psql_files/psql/pass/avocado "$PG_DATA_DIR/ssl_passphrase.sh"
 sudo chmod 700 "$PG_DATA_DIR/ssl_passphrase.sh"
 sudo chown "$(whoami)" "$PG_DATA_DIR/ssl_passphrase.sh"
 
@@ -157,7 +160,7 @@ sudo chmod 700 "$PG_DATA_DIR_HOMEBREW/ssl_passphrase.sh"
 sudo chown "$(whoami)" "$PG_DATA_DIR_HOMEBREW/ssl_passphrase.sh"
 
 # Copy PostgreSQL configuration
-cp psql_files/postgresql.conf "$PG_CONF_PATH"
+cp pwss_installer/psql_files/postgresql.conf "$PG_CONF_PATH"
 cp "$PG_CONF_PATH" "$PG_DATA_DIR_HOMEBREW/postgresql.conf"
 
 echo "PG_DATA_DIR: $PG_DATA_DIR"
