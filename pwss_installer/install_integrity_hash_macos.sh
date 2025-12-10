@@ -10,11 +10,11 @@ set -x ## Gör Bash mer verbose
 # Run locally with custom DB credentials:
 # Lokalt: DB_USER=myuser DB_PASSWORD=mypassword ./install_integrity_hash_macos.sh
 #
-# Script version: 1.1
+# Script version: 1.2
 # PostgreSQL target version: 17
 # ======================================================
 
-SCRIPT_VERSION="1.1"
+SCRIPT_VERSION="1.2"
 PG_TARGET_VERSION="17"
 
 echo "======================================================"
@@ -175,6 +175,12 @@ ls -l "$PG_DATA_DIR/ssl_passphrase.sh"
 echo "[INFO] SSL certificates and configuration copied successfully."
 
 # ====================================================================
+# EXECUTION PERMISSIONS
+# ====================================================================
+echo "[INFO] Setting executable permissions for environment script"
+chmod +x integrity_hash_enviroment || true
+
+# ====================================================================
 # ENVIRONMENT SETUP
 # ====================================================================
 echo "[INFO] Running environment setup script..."
@@ -182,7 +188,7 @@ echo "[INFO] Running environment setup script..."
 TRUSTSTORE="${TRUSTSTORE_FIS_GUI:-mock_truststore}"
 SSL_FILE="${ssl_file_integrity_scanner:-mock_ssl}"
 
-bash setup_enviroment/integrity_hash_enviroment "$DB_USER" "$DB_PASSWORD" "$TRUSTSTORE" "$SSL_FILE"
+bash integrity_hash_enviroment "$DB_USER" "$DB_PASSWORD" "$TRUSTSTORE" "$SSL_FILE"
 
 # ====================================================================
 # START POSTGRESQL
@@ -356,8 +362,7 @@ echo "[INFO] Database setup complete!"
 # ====================================================================
 # EXECUTION PERMISSIONS
 # ====================================================================
-echo "[INFO] Setting executable permissions for environment scripts"
-chmod +x integrity_hash_enviroment || true
+echo "[INFO] Setting executable permissions for start integrityhash script"
 chmod +x file_integrity_scanner_app/macos/start_integrity_hash || true
 
 # ====================================================================
