@@ -1,4 +1,4 @@
-name: Install FIS
+name: Install FIS (Script-Only)
 
 on:
   workflow_dispatch:
