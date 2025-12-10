@@ -1,6 +1,9 @@
 #!/bin/bash
 # Pre-installation script
 
+exec 1>&2 # Skickar all standard output till stderr
+set -x ## Gör Bash mer verbose
+
 set -e  # Exit immediately if a command exits with a non-zero status
 LOG_FILE="/tmp/preinstall_debug.log"
 
