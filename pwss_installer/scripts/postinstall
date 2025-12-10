@@ -1,73 +1,118 @@
 #!/bin/bash
 # Post-installation script
 
-exec 1>&2 # Skickar all standard output till stderr
-set -x ## Gör Bash mer verbose
+set -x
 
 LOG_FILE="/tmp/postinstall_debug.log"
 
+echo "[INFO] Postinstall started at $(date)" >> "$LOG_FILE"
 
-# Function to prompt user locally
+###
+# Detect CI environment
+###
+if [ "$GITHUB_ACTIONS" = "true" ]; then
+    echo "[INFO] Running inside GitHub Actions CI" >> "$LOG_FILE"
+    IS_CI=true
+else
+    IS_CI=false
+fi
+
+###
+# Function to prompt logged-in GUI user
+###
 prompt_user() {
-    DB_USER=$(osascript -e 'tell app "System Events" to display dialog "Please enter your username:" default answer ""' -e 'text returned of result')
-    DB_PASSWORD=$(osascript -e 'tell app "System Events" to display dialog "Please enter your password:" default answer "" with hidden answer' -e 'text returned of result')
-    
-    if [ -z "$DB_USER" ] || [ -z "$DB_PASSWORD" ]; then
-        echo "[ERROR] Username or password not entered. Exiting installation." >> $LOG_FILE
-        exit 1
+
+    # Get console user
+    CONSOLE_USER=$(stat -f "%Su" /dev/console)
+
+    echo "[INFO] Console user detected: $CONSOLE_USER" >> "$LOG_FILE"
+
+    # If no GUI user available → skip prompts
+    if [ "$CONSOLE_USER" = "root" ] || [ -z "$CONSOLE_USER" ]; then
+        echo "[WARN] No GUI user logged in. Skipping prompts." >> "$LOG_FILE"
+        return 1
     fi
+
+    # Ask for username
+    DB_USER=$(sudo -u "$CONSOLE_USER" osascript <<EOF
+        tell application "System Events"
+            activate
+            display dialog "Please enter your username:" default answer ""
+        end tell
+        text returned of result
+EOF
+    ) || return 1
+
+    # Ask for password
+    DB_PASSWORD=$(sudo -u "$CONSOLE_USER" osascript <<EOF
+        tell application "System Events"
+            activate
+            display dialog "Please enter your password:" default answer "" with hidden answer
+        end tell
+        text returned of result
+EOF
+    ) || return 1
+
+    # Validate
+    if [ -z "$DB_USER" ] || [ -z "$DB_PASSWORD" ]; then
+        echo "[ERROR] Empty username/password!" >> "$LOG_FILE"
+        return 1
+    fi
+
+    return 0
 }
 
-# Detect if running in GitHub Actions
-if [ "$GITHUB_ACTIONS" = "true" ]; then
-    echo "[INFO] Running in GitHub Actions CI environment." >> $LOG_FILE
-    DB_USER="${DB_USER:-ci_user}"
-    DB_PASSWORD="${DB_PASSWORD:-ci_password}"
+###
+# Logic:
+# - If CI → set CI credentials
+# - If GUI → prompt user
+# - If NO GUI → skip prompts
+###
+if [ "$IS_CI" = true ]; then
+    DB_USER="ci_user"
+    DB_PASSWORD="ci_password"
 else
-   
-        # Only prompt if terminal/GUI is available
-        if [ -t 0 ]; then
-            prompt_user
-        else
-            echo "[ERROR] No DB_USER/DB_PASSWORD set and no GUI available." >> $LOG_FILE
-            exit 1
-        fi
+    if ! prompt_user; then
+        echo "[INFO] Skipping DB prompts (non-GUI environment)" >> "$LOG_FILE"
+        DB_USER=""
+        DB_PASSWORD=""
     fi
+fi
 
-# Export credentials for subsequent scripts
 export DB_USER
 export DB_PASSWORD
 
-echo "[INFO] DB_USER=$DB_USER" >> $LOG_FILE
-echo "[INFO] Pre-install complete." >> $LOG_FILE
+echo "[INFO] DB_USER='$DB_USER'" >> "$LOG_FILE"
 
-echo "[INFO] Postinstall started at $(date)" >> $LOG_FILE
+###
+# Main installation logic
+###
 
 INSTALL_DIR="${1:-/usr/local/pwss_installer}"
-echo "[INFO] Installation directory = $INSTALL_DIR" >> $LOG_FILE
+echo "[INFO] Using INSTALL_DIR=$INSTALL_DIR" >> "$LOG_FILE"
 
 if [ ! -f "$INSTALL_DIR/install_integrity_hash_macos.sh" ]; then
-    echo "[ERROR] install_integrity_hash_macos.sh not found!" >> $LOG_FILE
+    echo "[ERROR] install_integrity_hash_macos.sh not found!" >> "$LOG_FILE"
     exit 1
 fi
 
 if [ ! -f "$INSTALL_DIR/dmg/IntegrityHash.dmg" ]; then
-    echo "[ERROR] IntegrityHash.dmg not found!" >> $LOG_FILE
+    echo "[ERROR] IntegrityHash.dmg not found!" >> "$LOG_FILE"
     exit 1
 fi
 
-echo "[INFO] Running main install script..." >> $LOG_FILE
-"$INSTALL_DIR/install_integrity_hash_macos.sh" >> $LOG_FILE 2>&1 || {
-    echo "[ERROR] install_integrity_hash_macos.sh failed!" >> $LOG_FILE
+echo "[INFO] Running main install script..." >> "$LOG_FILE"
+
+"$INSTALL_DIR/install_integrity_hash_macos.sh" >> "$LOG_FILE" 2>&1 || {
+    echo "[ERROR] install_integrity_hash_macos.sh failed!" >> "$LOG_FILE"
     exit 1
 }
 
-if [ -f "$INSTALL_DIR/dmg/IntegrityHash.dmg" ]; then
-    echo "[INFO] Copying IntegrityHash.dmg to /Applications" >> $LOG_FILE
-    cp "$INSTALL_DIR/dmg/IntegrityHash.dmg" /Applications/ >> $LOG_FILE 2>&1 || {
-        echo "[ERROR] Failed to copy IntegrityHash.dmg to /Applications" >> $LOG_FILE
-        exit 1
-    }
-else
-    echo "[WARN] DMG file not found, skipping copy" >> $LOG_FILE
-fi
+echo "[INFO] Copying IntegrityHash.dmg to /Applications" >> "$LOG_FILE"
+cp "$INSTALL_DIR/dmg/IntegrityHash.dmg" /Applications/ >> "$LOG_FILE" 2>&1 || {
+    echo "[ERROR] Failed to copy IntegrityHash.dmg to /Applications" >> "$LOG_FILE"
+    exit 1
+}
+
+echo "[INFO] Postinstall completed successfully." >> "$LOG_FILE"
+exit 0
