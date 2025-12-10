@@ -10,11 +10,11 @@ set -x ## Gör Bash mer verbose
 # Run locally with custom DB credentials:
 # Lokalt: DB_USER=myuser DB_PASSWORD=mypassword ./install_integrity_hash_macos.sh
 #
-# Script version: 1.2
+# Script version: 1.2.1
 # PostgreSQL target version: 17
 # ======================================================
 
-SCRIPT_VERSION="1.2"
+SCRIPT_VERSION="1.2.1"
 PG_TARGET_VERSION="17"
 
 echo "======================================================"
@@ -80,7 +80,7 @@ else
 fi
 
 # ====================================================================
-# OPTIONAL JAVA INSTALLATION
+# JAVA INSTALLATION
 # ====================================================================
 if [[ "$INSTALL_JAVA" == "true" ]]; then
   echo "[INFO] Installing OpenJDK 25..."
@@ -178,7 +178,7 @@ echo "[INFO] SSL certificates and configuration copied successfully."
 # EXECUTION PERMISSIONS
 # ====================================================================
 echo "[INFO] Setting executable permissions for environment script"
-chmod +x integrity_hash_enviroment || true
+chmod +x pwss_installer/integrity_hash_enviroment || true
 
 # ====================================================================
 # ENVIRONMENT SETUP
@@ -188,7 +188,7 @@ echo "[INFO] Running environment setup script..."
 TRUSTSTORE="${TRUSTSTORE_FIS_GUI:-mock_truststore}"
 SSL_FILE="${ssl_file_integrity_scanner:-mock_ssl}"
 
-bash integrity_hash_enviroment "$DB_USER" "$DB_PASSWORD" "$TRUSTSTORE" "$SSL_FILE"
+bash pwss_installer/integrity_hash_enviroment "$DB_USER" "$DB_PASSWORD" "$TRUSTSTORE" "$SSL_FILE"
 
 # ====================================================================
 # START POSTGRESQL
