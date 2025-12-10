@@ -93,6 +93,12 @@ jobs:
           chmod +x payload/usr/local/pwss_installer/install_integrity_hash_macos.sh
           chmod +x payload/usr/local/pwss_installer/integrity_hash_enviroment
 
+          # Create scripts folder
+          mkdir -p payload/usr/local/pwss_installer/scripts
+
+          # Copy pre & post install scripts
+          cp -R pwss_installer/scripts payload/usr/local/pwss_installer/
+
           # Ensure installer scripts are executable BEFORE pkgbuild reads them
           chmod +x payload/usr/local/pwss_installer/scripts/preinstall
           chmod +x payload/usr/local/pwss_installer/scripts/postinstall
@@ -118,7 +124,7 @@ jobs:
           pkgbuild \
           --root payload/usr/local/pwss_installer \
           --install-location /usr/local/pwss_installer \
-          --scripts pwss_installer/scripts \
+          --scripts payload/usr/local/pwss_installer/scripts \
           --identifier com.pwss.integrityhash \
           --version 1.0.0 \
           IntegrityHashInstaller.pkg
