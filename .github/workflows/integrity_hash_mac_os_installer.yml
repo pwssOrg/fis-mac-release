@@ -1,5 +1,4 @@
-name: Build IntegrityHash macOS Installer
-
+name: Create PKG Installer for IntegrityHash
 on:
   workflow_dispatch:
 
