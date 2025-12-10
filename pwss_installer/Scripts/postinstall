@@ -1,6 +1,8 @@
 #!/bin/bash
 # Post-installation script
-set -ex
+
+exec 1>&2 # Skickar all standard output till stderr
+set -x ## Gör Bash mer verbose
 
 LOG_FILE="/tmp/postinstall_debug.log"
 
