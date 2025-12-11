@@ -188,7 +188,7 @@ echo "[INFO] Running environment setup script..."
 TRUSTSTORE="${TRUSTSTORE_FIS_GUI:-mock_truststore}"
 SSL_FILE="${ssl_file_integrity_scanner:-mock_ssl}"
 
-bash pwss_installer/integrity_hash_enviroment "$DB_USER" "$DB_PASSWORD" "$TRUSTSTORE" "$SSL_FILE"
+bash pwss_installer/scripts/integrity_hash_enviroment "$DB_USER" "$DB_PASSWORD" "$TRUSTSTORE" "$SSL_FILE"
 
 # ====================================================================
 # START POSTGRESQL
