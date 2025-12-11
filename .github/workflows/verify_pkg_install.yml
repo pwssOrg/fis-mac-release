@@ -63,7 +63,7 @@ jobs:
       - name: Upload preinstall log
         uses: actions/upload-artifact@v4
         with:
-           name: postinstall-log
+           name: preinstall-log
            path: /tmp/preinstall_debug.log
       
       # 7️⃣ Upload log artifact for postinstall :)
