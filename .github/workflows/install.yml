@@ -10,6 +10,7 @@ jobs:
       DB_USER: integrity
       DB_PASSWORD: integrity123
       INSTALL_JAVA: true
+      GITHUB_ACTIONS: true
 
     steps:
       - uses: actions/checkout@v4
