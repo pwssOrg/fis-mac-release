@@ -136,32 +136,32 @@ fi
 echo "[INFO] Setting up SSL certificates and passphrase script..."
 
 # Create SSL directories
-sudo mkdir -p /usr/local/etc/ssl/private
+ mkdir -p /usr/local/etc/ssl/private
 
 # Copy certificate and key
-sudo cp /usr/local/pwss_installer/psql_files/psql/cert/server.crt "$PG_DATA_DIR/server.crt"
-sudo chown "$(whoami)" "$PG_DATA_DIR/server.crt"
+ cp /usr/local/pwss_installer/psql_files/psql/cert/server.crt "$PG_DATA_DIR/server.crt"
+ chown "$(whoami)" "$PG_DATA_DIR/server.crt"
 
-sudo cp "$PG_DATA_DIR/server.crt" "$PG_DATA_DIR_HOMEBREW/server.crt"
-sudo chown "$(whoami)" "$PG_DATA_DIR_HOMEBREW/server.crt"
+ cp "$PG_DATA_DIR/server.crt" "$PG_DATA_DIR_HOMEBREW/server.crt"
+ chown "$(whoami)" "$PG_DATA_DIR_HOMEBREW/server.crt"
 
 # Set secure permissions for key
-sudo cp /usr/local/pwss_installer/psql_files/psql/cert/server.key "$PG_DATA_DIR/server.key"
-sudo chmod 600 "$PG_DATA_DIR/server.key"
-sudo chown "$(whoami)" "$PG_DATA_DIR/server.key"
+ cp /usr/local/pwss_installer/psql_files/psql/cert/server.key "$PG_DATA_DIR/server.key"
+ chmod 600 "$PG_DATA_DIR/server.key"
+ chown "$(whoami)" "$PG_DATA_DIR/server.key"
 
-sudo cp "$PG_DATA_DIR/server.key" "$PG_DATA_DIR_HOMEBREW/server.key"
-sudo chmod 600 "$PG_DATA_DIR_HOMEBREW/server.key"
-sudo chown "$(whoami)" "$PG_DATA_DIR_HOMEBREW/server.key"
+cp "$PG_DATA_DIR/server.key" "$PG_DATA_DIR_HOMEBREW/server.key"
+chmod 600 "$PG_DATA_DIR_HOMEBREW/server.key"
+chown "$(whoami)" "$PG_DATA_DIR_HOMEBREW/server.key"
 
 # Copy passphrase script with sudo and make executable
-sudo cp /usr/local/pwss_installer/psql_files/psql/pass/avocado "$PG_DATA_DIR/ssl_passphrase.sh"
-sudo chmod 700 "$PG_DATA_DIR/ssl_passphrase.sh"
-sudo chown "$(whoami)" "$PG_DATA_DIR/ssl_passphrase.sh"
+cp /usr/local/pwss_installer/psql_files/psql/pass/avocado "$PG_DATA_DIR/ssl_passphrase.sh"
+chmod 700 "$PG_DATA_DIR/ssl_passphrase.sh"
+chown "$(whoami)" "$PG_DATA_DIR/ssl_passphrase.sh"
 
-sudo cp "$PG_DATA_DIR/ssl_passphrase.sh" "$PG_DATA_DIR_HOMEBREW/ssl_passphrase.sh"
-sudo chmod 700 "$PG_DATA_DIR_HOMEBREW/ssl_passphrase.sh"
-sudo chown "$(whoami)" "$PG_DATA_DIR_HOMEBREW/ssl_passphrase.sh"
+ cp "$PG_DATA_DIR/ssl_passphrase.sh" "$PG_DATA_DIR_HOMEBREW/ssl_passphrase.sh"
+ chmod 700 "$PG_DATA_DIR_HOMEBREW/ssl_passphrase.sh"
+ chown "$(whoami)" "$PG_DATA_DIR_HOMEBREW/ssl_passphrase.sh"
 
 # Copy PostgreSQL configuration
 cp /usr/local/pwss_installer/psql_files/postgresql.conf "$PG_CONF_PATH"
