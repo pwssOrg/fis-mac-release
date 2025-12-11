@@ -26,7 +26,7 @@ echo "======================================================"
 # SETTINGS FROM ENV OR DEFAULTS
 # ====================================================================
 
-GITHUB_ACTIONS=true
+GITHUB_ACTIONS=false
 # Detect GitHub Actions environment
 if [ -z "${GITHUB_ACTIONS}" ] || [ "${GITHUB_ACTIONS}" != "true" ]; then
 
