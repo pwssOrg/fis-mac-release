@@ -61,11 +61,12 @@ jobs:
           sudo installer -pkg "$PKG_PATH" -target /tmp/test-install -verboseR -dumplog | tee installer.log
       
       # 6️⃣ Upload log artifact :)
-      - name: Upload installer log
+      - name: Upload postinstall log
         uses: actions/upload-artifact@v4
         with:
-           name: installer-log
-           path: installer.log
+          name: postinstall-log
+          path: ${{ github.workspace }}/postinstall_debug.log
+           
 
       # 7️⃣ List installed files
       - name: List installed files
