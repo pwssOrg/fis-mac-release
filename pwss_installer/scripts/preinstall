@@ -1,0 +1,26 @@
+#!/bin/bash
+# Pre-installation script: Stopping installation on macOS < 10.15 (Catalina)
+
+exec 1>&2
+set -e
+set -x
+
+LOG_FILE="/tmp/preinstall_debug.log"
+echo "[INFO] Preinstall started at $(date)" >> $LOG_FILE
+
+# get macOS version
+OS_VERSION=$(sw_vers -productVersion)
+OS_MAJOR=$(echo "$OS_VERSION" | cut -d. -f1)
+OS_MINOR=$(echo "$OS_VERSION" | cut -d. -f2)
+
+echo "[INFO] Detected macOS version: $OS_VERSION" >> $LOG_FILE
+
+# If major < 10 -> block
+# If major = 10 och minor < 15 -> block
+if [ "$OS_MAJOR" -lt 10 ] || { [ "$OS_MAJOR" -eq 10 ] && [ "$OS_MINOR" -lt 15 ]; }; then
+    echo "[ERROR] Installation not supported on macOS < 10.15 (Catalina). Exiting." >> $LOG_FILE
+    echo "Installation not supported on macOS < 10.15 (Catalina)."
+    exit 1
+fi
+
+echo "[INFO] macOS version OK, procceding  installation." >> $LOG_FILE
