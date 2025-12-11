@@ -3,6 +3,7 @@
 
 set -x
 LOG_FILE="${GITHUB_WORKSPACE:-/tmp}/postinstall_debug.log"
+CONSOLE_USER=$(stat -f "%Su" /dev/console)
 
 echo "[INFO] Postinstall started at $(date)" >> "$LOG_FILE"
 
@@ -15,7 +16,6 @@ else
 fi
 
 prompt_user() {
-    CONSOLE_USER=$(stat -f "%Su" /dev/console)
     echo "[INFO] Console user detected: $CONSOLE_USER" >> "$LOG_FILE"
 
     if [ "$CONSOLE_USER" = "root" ] || [ -z "$CONSOLE_USER" ]; then
@@ -72,7 +72,7 @@ if [ ! -f "$INSTALL_DIR/install_integrity_hash_macos.sh" ]; then
 fi
 
 echo "[INFO] Running install_integrity_hash_macos.sh..." >> "$LOG_FILE"
-"$INSTALL_DIR/install_integrity_hash_macos.sh" >> "$LOG_FILE" 2>&1 || {
+sudo -u CONSOLE_USER "$INSTALL_DIR/install_integrity_hash_macos.sh" >> "$LOG_FILE" 2>&1 || {
     echo "[ERROR] install_integrity_hash_macos.sh failed!" >> "$LOG_FILE"
     exit 1
 }
