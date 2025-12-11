@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v4
 
       # ----------------------------------------------------------
-      # Download DMG artifact
+      # Download DMG artifact from another repo
       # ----------------------------------------------------------
       - name: Download IntegrityHash.dmg
         env:
@@ -73,41 +73,30 @@ jobs:
       # ----------------------------------------------------------
       - name: Prepare installer payload
         run: |
-          # Create correct root-relative payload
+          # Create root-relative payload folder
           mkdir -p payload/usr/local/pwss_installer
 
-          # Copy installer script
-          cp pwss_installer/install_integrity_hash_macos.sh payload/usr/local/pwss_installer/
+          # Copy all installer scripts from scripts/ folder
+          cp -R pwss_installer/scripts/* payload/usr/local/pwss_installer/
 
-          # Copy integrity_hash_enviroment script
-          cp -R pwss_installer/integrity_hash_enviroment payload/usr/local/pwss_installer/
-
-          # Copy DMG
+          # Copy DMG into payload
           mkdir -p payload/usr/local/pwss_installer/dmg
           cp "$DMG_FILE" payload/usr/local/pwss_installer/dmg/
 
-          # Copy PostgreSQL-related files
+          # Copy PostgreSQL-related files into payload
           cp -R pwss_installer/psql_files payload/usr/local/pwss_installer/
 
-          # Ensure executable permissions inside payload
+          # Ensure executable permissions for all main scripts
           chmod +x payload/usr/local/pwss_installer/install_integrity_hash_macos.sh
           chmod +x payload/usr/local/pwss_installer/integrity_hash_enviroment
-
-          # Create scripts folder
-          mkdir -p payload/usr/local/pwss_installer/scripts
-
-          # Copy post install script
-          cp -R pwss_installer/scripts payload/usr/local/pwss_installer/
-
-          # Ensure post install script is executable BEFORE pkgbuild reads them
-          chmod +x payload/usr/local/pwss_installer/scripts/postinstall
+          chmod +x payload/usr/local/pwss_installer/postinstall
 
       # ----------------------------------------------------------
       # Build PKG installer
       # ----------------------------------------------------------
       - name: Build Installer
         run: |
-          # Architecture detection for optional later use
+          # Detect architecture for potential later use
           ARCH=$(uname -m)
           if [[ "$ARCH" == "arm64" ]]; then
             PGDATA_DIR="/opt/homebrew/var/postgresql@17"
@@ -118,18 +107,17 @@ jobs:
           echo "Architecture: $ARCH"
           echo "PostgreSQL data directory: $PGDATA_DIR"
 
-         
-          # Build package correctly
+          # Build the PKG installer using pkgbuild
           pkgbuild \
-          --root payload/usr/local/pwss_installer \
-          --install-location /usr/local/pwss_installer \
-          --scripts payload/usr/local/pwss_installer/scripts \
-          --identifier com.pwss.integrityhash \
-          --version 1.0.0 \
-          IntegrityHashInstaller.pkg
+            --root payload/usr/local/pwss_installer \
+            --install-location /usr/local/pwss_installer \
+            --scripts payload/usr/local/pwss_installer \
+            --identifier com.pwss.integrityhash \
+            --version 1.0.0 \
+            IntegrityHashInstaller.pkg
 
       # ----------------------------------------------------------
-      # Upload final PKG
+      # Upload final PKG as artifact
       # ----------------------------------------------------------
       - name: Upload installer package
         uses: actions/upload-artifact@v4
@@ -139,13 +127,12 @@ jobs:
 
 # 📁 Repository structure that the workflow is based on
 # pwss_installer/
-# ├── install_integrity_hash_macos.sh
-# ├── integrity_hash_enviroment        
+# ├── scripts/                         
+# │   ├── install_integrity_hash_macos.sh
+# │   ├── integrity_hash_enviroment
+# │   └── postinstall
 # ├── dmg/
 # │   └── IntegrityHash.dmg            
-# ├── scripts/                        
-# │   └── postinstall
-# │   
 # └── psql_files/
 #     ├── psql/
 #     │   ├── cert/
