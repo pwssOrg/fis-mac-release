@@ -9,6 +9,8 @@ jobs:
     env:
       SSL_FILE_INTEGRITY_SCANNER: ${{ secrets.SSL_FILE_INTEGRITY_SCANNER }}
       TRUSTSTORE_FIS_GUI: ${{ secrets.TRUSTSTORE_FIS_GUI }}
+      GITHUB_ACTIONS: true
+      CI: true
 
     steps:
       # ----------------------------------------------------------
