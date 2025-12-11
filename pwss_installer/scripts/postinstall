@@ -74,7 +74,7 @@ fi
 CONSOLE_USER=$(stat -f "%Su" /dev/console)
 
 echo "[INFO] Running install_integrity_hash_macos.sh..." >> "$LOG_FILE"
-sudo -u CONSOLE_USER "$INSTALL_DIR/install_integrity_hash_macos.sh" >> "$LOG_FILE" 2>&1 || {
+sudo -u $CONSOLE_USER "$INSTALL_DIR/install_integrity_hash_macos.sh" >> "$LOG_FILE" 2>&1 || {
     echo "[ERROR] install_integrity_hash_macos.sh failed!" >> "$LOG_FILE"
     exit 1
 }
