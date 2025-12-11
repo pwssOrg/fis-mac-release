@@ -64,8 +64,8 @@ jobs:
       - name: Upload postinstall log
         uses: actions/upload-artifact@v4
         with:
-          name: postinstall-log
-          path: ${{ github.workspace }}/postinstall_debug.log
+           name: postinstall-log
+           path: /tmp/postinstall_debug.log
            
 
       # 7️⃣ List installed files
