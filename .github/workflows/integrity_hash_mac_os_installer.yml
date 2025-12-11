@@ -111,6 +111,7 @@ jobs:
 
           # Build the PKG installer using pkgbuild
           pkgbuild \
+            --root payload/usr/local/pwss_installer \
             --install-location /usr/local/pwss_installer \
             --scripts payload/usr/local/pwss_installer \
             --identifier com.pwss.integrityhash \
