@@ -9,8 +9,6 @@ jobs:
     env:
       DB_USER: The_Dodo_Bird
       DB_PASSWORD: happy_smiley
-      GITHUB_ACTIONS: true
-      CI: true
 
     steps:
       # 1️⃣ Checkout repository
@@ -57,13 +55,18 @@ jobs:
         env:
           DB_USER: testuser
           DB_PASSWORD: testpass
-          GITHUB_ACTIONS: true
-          CI: true
         run: |
           mkdir -p /tmp/test-install
           sudo installer -pkg "$PKG_PATH" -target /tmp/test-install -verboseR -dumplog | tee installer.log
+
+      # 6️⃣ Upload log artifact for preinstall :)
+      - name: Upload postinstall log
+        uses: actions/upload-artifact@v4
+        with:
+           name: postinstall-log
+           path: /tmp/preinstall_debug.log
       
-      # 6️⃣ Upload log artifact :)
+      # 7️⃣ Upload log artifact for postinstall :)
       - name: Upload postinstall log
         uses: actions/upload-artifact@v4
         with:
@@ -71,6 +74,6 @@ jobs:
            path: /tmp/postinstall_debug.log
            
 
-      # 7️⃣ List installed files
+      # 8️⃣ List installed files
       - name: List installed files
         run: ls -R /tmp/test-install
