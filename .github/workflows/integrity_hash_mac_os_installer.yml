@@ -57,7 +57,7 @@ jobs:
           ARTIFACT_ID=$(echo "$response" | jq -r '.artifacts[] | select(.name=="IntegrityHash.dmg") | .id')
 
           if [ -z "$ARTIFACT_ID" ] || [ "$ARTIFACT_ID" = "null" ]; then
-            echo "❌ Artifact IntegrityHash.dmg not found!"
+            echo "Artifact IntegrityHash.dmg not found!"
             exit 1
           fi
 
