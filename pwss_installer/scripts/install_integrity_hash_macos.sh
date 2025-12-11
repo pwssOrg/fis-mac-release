@@ -10,11 +10,11 @@ set -x ## Gör Bash mer verbose
 # Run locally with custom DB credentials:
 # Lokalt: DB_USER=myuser DB_PASSWORD=mypassword ./install_integrity_hash_macos.sh
 #
-# Script version: 1.2.1
+# Script version: 1.2.2
 # PostgreSQL target version: 17
 # ======================================================
 
-SCRIPT_VERSION="1.2.1"
+SCRIPT_VERSION="1.2.2"
 PG_TARGET_VERSION="17"
 
 echo "======================================================"
@@ -178,7 +178,7 @@ echo "[INFO] SSL certificates and configuration copied successfully."
 # EXECUTION PERMISSIONS
 # ====================================================================
 echo "[INFO] Setting executable permissions for environment script"
-chmod +x pwss_installer/integrity_hash_enviroment || true
+chmod +x pwss_installer/scripts/integrity_hash_enviroment || true
 
 # ====================================================================
 # ENVIRONMENT SETUP
