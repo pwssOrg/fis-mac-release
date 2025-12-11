@@ -2,7 +2,7 @@
 # Post-installation script for IntegrityHashInstaller.pkg
 
 set -x
-LOG_FILE="/tmp/postinstall_debug.log"
+LOG_FILE="${GITHUB_WORKSPACE:-/tmp}/postinstall_debug.log"
 
 echo "[INFO] Postinstall started at $(date)" >> "$LOG_FILE"
 
