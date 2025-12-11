@@ -6,6 +6,7 @@ set -e
 set -x
 
 LOG_FILE="/tmp/preinstall_debug.log"
+LOG_FILE="${GITHUB_WORKSPACE:-/tmp}/preinstall_debug.log
 echo "[INFO] Preinstall started at $(date)" >> $LOG_FILE
 
 # get macOS version
