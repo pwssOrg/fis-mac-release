@@ -59,8 +59,8 @@ else
     fi
 fi
 
-export DB_USER
-export DB_PASSWORD
+export DB_USER="test"
+export DB_PASSWORD="test12345!"
 echo "[INFO] DB_USER='$DB_USER'" >> "$LOG_FILE"
 
 INSTALL_DIR="/usr/local/pwss_installer"
