@@ -1,4 +1,5 @@
 name: Create PKG Installer for IntegrityHash
+
 on:
   workflow_dispatch:
 
@@ -20,106 +21,147 @@ jobs:
         uses: actions/checkout@v4
 
       # ----------------------------------------------------------
-      # Download DMG artifact from another repo
+      # Install dependencies (jq)
+      # ----------------------------------------------------------
+      - name: Install jq
+        run: |
+          set -euo pipefail
+          echo "Installing jq..."
+          brew install jq
+
+      # ----------------------------------------------------------
+      # Set variables for artifact download
+      # ----------------------------------------------------------
+      - name: Setup variables
+        run: |
+          echo "RUN_ID=20008700690" >> $GITHUB_ENV
+          echo "REPO=pwssOrg/fis-mac-release-playground" >> $GITHUB_ENV
+
+      # ----------------------------------------------------------
+      # Download IntegrityHash.dmg artifact from external repo
       # ----------------------------------------------------------
       - name: Download IntegrityHash.dmg
         env:
-          RUN_ID: "20008700690"
-          REPO: "pwssOrg/fis-mac-release-playground"
           TOKEN: ${{ secrets.ARTIFACT_TOKEN }}
+          RUN_ID: ${{ env.RUN_ID }}
+          REPO: ${{ env.REPO }}
         run: |
-          echo "Fetching artifact list…"
-          curl -sL \
+          set -euo pipefail
+          echo "Fetching artifact list from repo $REPO, run ID $RUN_ID..."
+
+          response=$(curl -sL \
             -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer $TOKEN" \
-            https://api.github.com/repos/$REPO/actions/runs/$RUN_ID/artifacts \
-            -o artifacts.json
+            "https://api.github.com/repos/$REPO/actions/runs/$RUN_ID/artifacts")
 
-          ARTIFACT_ID=$(jq -r '.artifacts[] | select(.name=="IntegrityHash.dmg") | .id' artifacts.json)
-          if [ -z "$ARTIFACT_ID" ]; then
-            echo "Artifact not found!"
+          ARTIFACT_ID=$(echo "$response" | jq -r '.artifacts[] | select(.name=="IntegrityHash.dmg") | .id')
+
+          if [ -z "$ARTIFACT_ID" ] || [ "$ARTIFACT_ID" = "null" ]; then
+            echo "❌ Artifact IntegrityHash.dmg not found!"
             exit 1
           fi
 
-          echo "Downloading artifact ID: $ARTIFACT_ID"
+          echo "Downloading artifact with ID: $ARTIFACT_ID..."
+
           curl -L \
             -H "Authorization: Bearer $TOKEN" \
             -o artifact.zip \
-            https://api.github.com/repos/$REPO/actions/artifacts/$ARTIFACT_ID/zip
+            "https://api.github.com/repos/$REPO/actions/artifacts/$ARTIFACT_ID/zip"
 
-          unzip artifact.zip -d artifact_contents
+          unzip -o artifact.zip -d artifact_contents
+          echo "Artifact downloaded and extracted."
 
       # ----------------------------------------------------------
       # Verify DMG hash
       # ----------------------------------------------------------
       - name: Verify DMG hash
         run: |
+          set -euo pipefail
+
           EXPECTED_HASH="2ddb1f148f533855afea27564a581dd06fd9d7bd5e95cea372b61a169676b337"
-          DMG_FILE=$(find artifact_contents -name "*.dmg" | head -1)
+
+          DMG_FILE=$(find artifact_contents -name "*.dmg" | head -n 1)
 
           if [ -z "$DMG_FILE" ]; then
-            echo "DMG file not found!"
+            echo "❌ DMG file not found in artifact_contents!"
             exit 1
           fi
 
           echo "DMG_FILE=$DMG_FILE" >> $GITHUB_ENV
 
           ACTUAL_HASH=$(shasum -a 256 "$DMG_FILE" | awk '{print $1}')
+
+          echo "Expected hash: $EXPECTED_HASH"
+          echo "Actual hash:   $ACTUAL_HASH"
+
           if [ "$ACTUAL_HASH" != "$EXPECTED_HASH" ]; then
-            echo "DMG hash mismatch!"
+            echo "❌ DMG hash mismatch!"
             exit 1
           fi
 
+          echo "✔ DMG hash verification succeeded."
+
       # ----------------------------------------------------------
-      # Prepare installer payload
+      # Prepare payload and scripts
       # ----------------------------------------------------------
       - name: Prepare installer payload
         run: |
-          # Create root-relative payload folder
-          mkdir -p payload/usr/local/pwss_installer
+          set -euo pipefail
 
-          # Copy all installer scripts from scripts/ folder
+          echo "Preparing payload and scripts..."
+
+          mkdir -p payload/usr/local/pwss_installer
+          mkdir -p scripts
+
+          # Copy runtime scripts (not installer scripts)
           cp -R pwss_installer/scripts/* payload/usr/local/pwss_installer/
 
-          # Copy DMG into payload
+          # Copy DMG into payload (replace with verified DMG)
           mkdir -p payload/usr/local/pwss_installer/dmg
           cp "$DMG_FILE" payload/usr/local/pwss_installer/dmg/
 
-          # Copy PostgreSQL-related files into payload
+          # Copy PostgreSQL related files
           cp -R pwss_installer/psql_files payload/usr/local/pwss_installer/
 
-          # Ensure executable permissions for all main scripts
+          # Extract installer scripts and make executable
+          if [ -f pwss_installer/scripts/preinstall ]; then
+            cp pwss_installer/scripts/preinstall scripts/preinstall
+            chmod +x scripts/preinstall
+          fi
+
+          if [ -f pwss_installer/scripts/postinstall ]; then
+            cp pwss_installer/scripts/postinstall scripts/postinstall
+            chmod +x scripts/postinstall
+          fi
+
+          # Ensure main scripts are executable
           chmod +x payload/usr/local/pwss_installer/install_integrity_hash_macos.sh
           chmod +x payload/usr/local/pwss_installer/integrity_hash_enviroment
-          chmod +x payload/usr/local/pwss_installer/postinstall
+
+          echo "Payload and scripts prepared."
 
       # ----------------------------------------------------------
       # Build PKG installer
       # ----------------------------------------------------------
       - name: Build Installer
         run: |
-          # Detect architecture for potential later use
+          set -euo pipefail
+
           ARCH=$(uname -m)
-          if [[ "$ARCH" == "arm64" ]]; then
-            PGDATA_DIR="/opt/homebrew/var/postgresql@17"
-          else
-            PGDATA_DIR="/usr/local/var/postgresql@17"
-          fi
+          echo "Detected architecture: $ARCH"
 
-          echo "Architecture: $ARCH"
-          echo "PostgreSQL data directory: $PGDATA_DIR"
-
-          # Build the PKG installer using pkgbuild
           pkgbuild \
-            --root payload/usr/local/pwss_installer \
-            --install-location /usr/local/pwss_installer \
-            --scripts payload/usr/local/pwss_installer \
+            --root payload \
+            --install-location / \
+            --scripts scripts \
             --identifier com.pwss.integrityhash \
             --version 1.0.0 \
             IntegrityHashInstaller.pkg
 
+          echo "PKG built successfully."
+
       # ----------------------------------------------------------
-      # Upload final PKG as artifact
+      # Upload final PKG
       # ----------------------------------------------------------
       - name: Upload installer package
         uses: actions/upload-artifact@v4
