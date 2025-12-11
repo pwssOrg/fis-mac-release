@@ -70,7 +70,7 @@ export DB_PASSWORD
 echo "[INFO] DB_USER='$DB_USER'" >> "$LOG_FILE"
 
 # Determine INSTALL_DIR relative to this script
-INSTALL_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+INSTALL_DIR="$(dirname "$0")/../usr/local/pwss_installer"
 echo "[INFO] Using INSTALL_DIR=$INSTALL_DIR" >> "$LOG_FILE"
 
 # Check for main install script
