@@ -139,14 +139,14 @@ echo "[INFO] Setting up SSL certificates and passphrase script..."
 sudo mkdir -p /usr/local/etc/ssl/private
 
 # Copy certificate and key
-sudo cp pwss_installer/psql_files/psql/cert/server.crt "$PG_DATA_DIR/server.crt"
+sudo cp payload/usr/local/pwss_installer/psql_files/psql/cert/server.crt "$PG_DATA_DIR/server.crt"
 sudo chown "$(whoami)" "$PG_DATA_DIR/server.crt"
 
 sudo cp "$PG_DATA_DIR/server.crt" "$PG_DATA_DIR_HOMEBREW/server.crt"
 sudo chown "$(whoami)" "$PG_DATA_DIR_HOMEBREW/server.crt"
 
 # Set secure permissions for key
-sudo cp pwss_installer/psql_files/psql/cert/server.key "$PG_DATA_DIR/server.key"
+sudo cp payload/usr/local/pwss_installer/psql_files/psql/cert/server.key "$PG_DATA_DIR/server.key"
 sudo chmod 600 "$PG_DATA_DIR/server.key"
 sudo chown "$(whoami)" "$PG_DATA_DIR/server.key"
 
@@ -155,7 +155,7 @@ sudo chmod 600 "$PG_DATA_DIR_HOMEBREW/server.key"
 sudo chown "$(whoami)" "$PG_DATA_DIR_HOMEBREW/server.key"
 
 # Copy passphrase script with sudo and make executable
-sudo cp pwss_installer/psql_files/psql/pass/avocado "$PG_DATA_DIR/ssl_passphrase.sh"
+sudo cp payload/usr/local/pwss_installer/psql_files/psql/pass/avocado "$PG_DATA_DIR/ssl_passphrase.sh"
 sudo chmod 700 "$PG_DATA_DIR/ssl_passphrase.sh"
 sudo chown "$(whoami)" "$PG_DATA_DIR/ssl_passphrase.sh"
 
@@ -164,7 +164,7 @@ sudo chmod 700 "$PG_DATA_DIR_HOMEBREW/ssl_passphrase.sh"
 sudo chown "$(whoami)" "$PG_DATA_DIR_HOMEBREW/ssl_passphrase.sh"
 
 # Copy PostgreSQL configuration
-cp pwss_installer/psql_files/postgresql.conf "$PG_CONF_PATH"
+cp payload/usr/local/pwss_installer/psql_files/postgresql.conf "$PG_CONF_PATH"
 cp "$PG_CONF_PATH" "$PG_DATA_DIR_HOMEBREW/postgresql.conf"
 
 echo "PG_DATA_DIR: $PG_DATA_DIR"
@@ -182,7 +182,7 @@ echo "[INFO] SSL certificates and configuration copied successfully."
 # EXECUTION PERMISSIONS
 # ====================================================================
 echo "[INFO] Setting executable permissions for environment script"
-chmod +x pwss_installer/scripts/integrity_hash_enviroment || true
+chmod +x payload/usr/local/pwss_installer/integrity_hash_enviroment || true
 
 # ====================================================================
 # ENVIRONMENT SETUP
@@ -192,7 +192,7 @@ echo "[INFO] Running environment setup script..."
 TRUSTSTORE="${TRUSTSTORE_FIS_GUI:-mock_truststore}"
 SSL_FILE="${ssl_file_integrity_scanner:-mock_ssl}"
 
-bash pwss_installer/scripts/integrity_hash_enviroment "$DB_USER" "$DB_PASSWORD" "$TRUSTSTORE" "$SSL_FILE"
+bash payload/usr/local/pwss_installer/integrity_hash_enviroment "$DB_USER" "$DB_PASSWORD" "$TRUSTSTORE" "$SSL_FILE"
 
 # ====================================================================
 # START POSTGRESQL
@@ -362,12 +362,6 @@ done
 PGPASSWORD="$DB_PASSWORD" psql -U "$DB_USER" -d "$DB_NAME" -p "$PORT" -c "ALTER DATABASE \"$DB_NAME\" OWNER TO \"$DB_USER\";"
  
 echo "[INFO] Database setup complete!"
-
-# ====================================================================
-# EXECUTION PERMISSIONS
-# ====================================================================
-echo "[INFO] Setting executable permissions for start integrityhash script"
-chmod +x file_integrity_scanner_app/macos/start_integrity_hash || true
 
 # ====================================================================
 # Setting psql executable to path
