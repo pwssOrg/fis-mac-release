@@ -10,8 +10,8 @@ jobs:
     env:
       SSL_FILE_INTEGRITY_SCANNER: ${{ secrets.SSL_FILE_INTEGRITY_SCANNER }}
       TRUSTSTORE_FIS_GUI: ${{ secrets.TRUSTSTORE_FIS_GUI }}
-      GITHUB_ACTIONS: true
-      CI: true
+      GITHUB_ACTIONS: false
+      CI: false
 
     steps:
       # ----------------------------------------------------------
@@ -83,7 +83,7 @@ jobs:
           DMG_FILE=$(find artifact_contents -name "*.dmg" | head -n 1)
 
           if [ -z "$DMG_FILE" ]; then
-            echo "❌ DMG file not found in artifact_contents!"
+            echo "DMG file not found in artifact_contents!"
             exit 1
           fi
 
