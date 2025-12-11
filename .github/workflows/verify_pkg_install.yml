@@ -10,6 +10,7 @@ jobs:
       DB_USER: The_Dodo_Bird
       DB_PASSWORD: happy_smiley
       GITHUB_ACTIONS: true
+      CI: true
 
     steps:
       # 1️⃣ Checkout repository
