@@ -57,6 +57,8 @@ jobs:
         env:
           DB_USER: testuser
           DB_PASSWORD: testpass
+          GITHUB_ACTIONS: true
+          CI: true
         run: |
           mkdir -p /tmp/test-install
           sudo installer -pkg "$PKG_PATH" -target /tmp/test-install -verboseR -dumplog | tee installer.log
