@@ -60,7 +60,7 @@ jobs:
           sudo installer -pkg "$PKG_PATH" -target /tmp/test-install -verboseR -dumplog | tee installer.log
 
       # 6️⃣ Upload log artifact for preinstall :)
-      - name: Upload postinstall log
+      - name: Upload preinstall log
         uses: actions/upload-artifact@v4
         with:
            name: postinstall-log
