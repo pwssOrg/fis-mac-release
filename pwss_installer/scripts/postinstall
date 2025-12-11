@@ -23,24 +23,22 @@ prompt_user() {
         return 1
     fi
 
-DB_USER=$(osascript <<EOF
+    DB_USER=$(sudo -u "$CONSOLE_USER" osascript <<EOF
 tell application "System Events"
     activate
     display dialog "Please enter your username:" default answer ""
 end tell
 text returned of result
 EOF
-)
 ) || return 1
 
-   DB_PASSWORD=$(osascript <<EOF
+    DB_PASSWORD=$(sudo -u "$CONSOLE_USER" osascript <<EOF
 tell application "System Events"
     activate
     display dialog "Please enter your password:" default answer "" with hidden answer
 end tell
 text returned of result
 EOF
-)
 ) || return 1
 
     if [ -z "$DB_USER" ] || [ -z "$DB_PASSWORD" ]; then
