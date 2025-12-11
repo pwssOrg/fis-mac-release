@@ -1,107 +1,21 @@
 #!/bin/bash
-# Post-installation script for IntegrityHashInstaller.pkg
-
 set -x
 LOG_FILE="${GITHUB_WORKSPACE:-/tmp}/postinstall_debug.log"
-
 echo "[INFO] Postinstall started at $(date)" >> "$LOG_FILE"
 
-# Detect CI environment
-if [ "$GITHUB_ACTIONS" = "true" ]; then
-    echo "[INFO] Running inside GitHub Actions CI" >> "$LOG_FILE"
-    IS_CI=true
-else
-    IS_CI=false
-fi
-
-# Function to prompt user via AppleScript
-prompt_user() {
-    CONSOLE_USER=$(stat -f "%Su" /dev/console)
-    echo "[INFO] Console user detected: $CONSOLE_USER" >> "$LOG_FILE"
-
-    # Skip if no GUI user available
-    if [ "$CONSOLE_USER" = "root" ] || [ -z "$CONSOLE_USER" ]; then
-        echo "[WARN] No GUI user logged in. Skipping prompts." >> "$LOG_FILE"
-        return 1
-    fi
-
-    # Prompt for DB_USER
-    DB_USER=$(sudo -u "$CONSOLE_USER" osascript <<EOF
-tell application "System Events"
-    activate
-    display dialog "Please enter your username:" default answer ""
-end tell
-text returned of result
-EOF
-) || return 1
-
-    # Prompt for DB_PASSWORD
-    DB_PASSWORD=$(sudo -u "$CONSOLE_USER" osascript <<EOF
-tell application "System Events"
-    activate
-    display dialog "Please enter your password:" default answer "" with hidden answer
-end tell
-text returned of result
-EOF
-) || return 1
-
-    # Validate input
-    if [ -z "$DB_USER" ] || [ -z "$DB_PASSWORD" ]; then
-        echo "[ERROR] Empty username/password!" >> "$LOG_FILE"
-        return 1
-    fi
-    return 0
-}
-
-# Set credentials
-if [ "$IS_CI" = true ]; then
-    DB_USER="ci_user"
-    DB_PASSWORD="ci_password"
-else
-    if ! prompt_user; then
-        echo "[INFO] Skipping DB prompts (non-GUI environment)" >> "$LOG_FILE"
-        DB_USER=""
-        DB_PASSWORD=""
-    fi
-fi
-
-export DB_USER
-export DB_PASSWORD
-echo "[INFO] DB_USER='$DB_USER'" >> "$LOG_FILE"
-
-# Determine INSTALL_DIR relative to this script
-INSTALL_DIR="$(dirname "$0")/../usr/local/pwss_installer"
+INSTALL_DIR="$(cd "$(dirname "$0")" && pwd)"
 echo "[INFO] Using INSTALL_DIR=$INSTALL_DIR" >> "$LOG_FILE"
 
-# Check for main install script
+# Run main installer
 if [ ! -f "$INSTALL_DIR/install_integrity_hash_macos.sh" ]; then
     echo "[ERROR] install_integrity_hash_macos.sh not found in $INSTALL_DIR!" >> "$LOG_FILE"
     exit 1
 fi
 
-# Check for DMG file
-if [ ! -f "$INSTALL_DIR/dmg/IntegrityHash.dmg" ]; then
-    echo "[ERROR] IntegrityHash.dmg not found in $INSTALL_DIR/dmg!" >> "$LOG_FILE"
-    exit 1
-fi
-
-# Run main installer
-echo "[INFO] Running install_integrity_hash_macos.sh..." >> "$LOG_FILE"
 "$INSTALL_DIR/install_integrity_hash_macos.sh" >> "$LOG_FILE" 2>&1 || {
     echo "[ERROR] install_integrity_hash_macos.sh failed!" >> "$LOG_FILE"
     exit 1
 }
-
-# Copy DMG safely
-if [ -f "$INSTALL_DIR/dmg/IntegrityHash.dmg" ]; then
-    echo "[INFO] Copying IntegrityHash.dmg to /Applications..." >> "$LOG_FILE"
-    cp "$INSTALL_DIR/dmg/IntegrityHash.dmg" /Applications/ >> "$LOG_FILE" 2>&1 || {
-        echo "[ERROR] Failed to copy IntegrityHash.dmg to /Applications" >> "$LOG_FILE"
-        # Do not exit, we still want installer to succeed
-    }
-else
-    echo "[WARN] DMG file not found, skipping copy" >> "$LOG_FILE"
-fi
 
 echo "[INFO] Postinstall completed successfully at $(date)" >> "$LOG_FILE"
 exit 0
