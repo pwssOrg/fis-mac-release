@@ -33,7 +33,7 @@ if [ ! -f "$INSTALL_DIR/install_integrity_hash_macos.sh" ]; then
     exit 1
 fi
 
-CONSOLE_USER=$(stat -f "%Su" /dev/console)
+
 
 echo "[INFO] Running install_integrity_hash_macos.sh..." >> "$LOG_FILE"
 "$INSTALL_DIR/install_integrity_hash_macos.sh" >> "$LOG_FILE" 2>&1 || {
