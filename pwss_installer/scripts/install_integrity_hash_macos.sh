@@ -57,60 +57,6 @@ INSTALL_JAVA="${INSTALL_JAVA:-true}"
 echo "[INFO] Database user: $DB_USER"
 echo "[INFO] Java installation enabled: $INSTALL_JAVA"
 
-# ====================================================================
-# CHECK HOMEBREW
-# ====================================================================
-
-# ====================================================================
-# DETECT REAL USER
-# ====================================================================
-if [ -n "${SUDO_USER:-}" ]; then
-    REAL_USER="$SUDO_USER"
-else
-    REAL_USER=$(whoami)
-fi
-
-USER_HOME=$(eval echo "~$REAL_USER")
-echo "[INFO] Running postinstall as user: $REAL_USER"
-
-# ====================================================================
-# DETERMINE HOME BREW PATH
-# ====================================================================
-BREW_BIN=""
-if [[ -d "/opt/homebrew/bin" ]]; then
-    # Apple Silicon
-    BREW_BIN="/opt/homebrew/bin/brew"
-elif [[ -d "/usr/local/bin" ]]; then
-    # Intel
-    BREW_BIN="/usr/local/bin/brew"
-fi
-
-# ====================================================================
-# JAVA INSTALLATION
-# ====================================================================
-if [[ "${INSTALL_JAVA:-true}" == "true" ]]; then
-    echo "[INFO] Installing OpenJDK 25..."
-    "$BREW_BIN" install openjdk@25 || true
-    "$BREW_BIN" link --force --overwrite openjdk@25 || true
-else
-    echo "[INFO] Skipping Java installation."
-fi
-
-java -version || echo "[WARN] Java not installed or not linked."
-
-# ====================================================================
-# INSTALL POSTGRESQL
-# ====================================================================
-if ! command -v psql &>/dev/null; then
-    echo "[INFO] PostgreSQL not found — installing version 17..."
-    "$BREW_BIN" install postgresql@17
-else
-    echo "[INFO] PostgreSQL already installed."
-fi
-
-
-
-
 # Make sure PATH includes Postgres binaries
 export PATH="$(brew --prefix postgresql@17)/bin:$PATH"
 
