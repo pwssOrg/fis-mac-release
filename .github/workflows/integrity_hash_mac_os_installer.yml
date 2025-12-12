@@ -150,24 +150,42 @@ jobs:
           ARCH=$(uname -m)
           echo "Detected architecture: $ARCH"
 
+          mkdir -p build
+          mkdir -p output
+
+          echo "Building component package..."
           pkgbuild \
             --root payload \
             --install-location / \
             --scripts scripts \
             --identifier com.pwss.integrityhash \
             --version 1.0.0 \
-            IntegrityHashInstaller.pkg
+          build/com.pwss.integrityhash.pkg
 
-          echo "PKG built successfully."
+          echo "Building final product installer (GUI)..."
+          productbuild \
+            --distribution installer-gui-script.xml \
+            --resources resources \
+            --package-path build \
+            output/IntegrityHashInstaller.pkg
+
+          echo "Both PKGs built successfully."
 
       # ----------------------------------------------------------
-      # Upload final PKG
+      # Upload final PKGs
       # ----------------------------------------------------------
-      - name: Upload installer package
+      - name: Upload component package
         uses: actions/upload-artifact@v4
         with:
-          name: IntegrityHashInstaller
-          path: IntegrityHashInstaller.pkg
+          name: component-pkg
+          path: build/com.pwss.integrityhash.pkg
+
+      
+      - name: Upload final installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-installer
+          path: output/IntegrityHashInstaller.pkg
 
 # 📁 Repository structure that the workflow is based on
 # pwss_installer/
