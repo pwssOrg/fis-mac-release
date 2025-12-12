@@ -61,25 +61,25 @@ echo "[INFO] Java installation enabled: $INSTALL_JAVA"
 # CHECK HOMEBREW
 # ====================================================================
 
-if command -v brew >/dev/null 2>&1; then
+USER_HOME=$(eval echo "~$SUDO_USER")
+BREW_BIN="/opt/homebrew/bin/brew"
+[[ -d "/usr/local/bin" ]] && BREW_BIN="/usr/local/bin/brew"
+
+if sudo -u "$SUDO_USER" command -v brew >/dev/null 2>&1; then
     echo "Homebrew is already installed."
     echo "Updating Homebrew..."
-    brew update
+    sudo -u "$SUDO_USER" brew update
 else
     echo "Homebrew not found. Installing..."
- 
-    # Install Homebrew (non-interactive)
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
- 
-    # Add Homebrew to PATH depending on architecture
+    sudo -u "$SUDO_USER" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+    # Add Homebrew to PATH for användaren
     if [[ -d "/opt/homebrew/bin" ]]; then
-        # Apple Silicon
-        echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
-        eval "$(/opt/homebrew/bin/brew shellenv)"
+        echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$USER_HOME/.zprofile"
+        sudo -u "$SUDO_USER" eval "$(/opt/homebrew/bin/brew shellenv)"
     elif [[ -d "/usr/local/bin" ]]; then
-        # Intel mac
-        echo 'eval "$(/usr/local/bin/brew shellenv)"' >> ~/.zprofile
-        eval "$(/usr/local/bin/brew shellenv)"
+        echo 'eval "$(/usr/local/bin/brew shellenv)"' >> "$USER_HOME/.zprofile"
+        sudo -u "$SUDO_USER" eval "$(/usr/local/bin/brew shellenv)"
     fi
 fi
 
@@ -87,23 +87,22 @@ fi
 # JAVA INSTALLATION
 # ====================================================================
 if [[ "$INSTALL_JAVA" == "true" ]]; then
-  echo "[INFO] Installing OpenJDK 25..."
-  brew install openjdk@25 || true
-  brew link --force --overwrite openjdk@25 || true
+    echo "[INFO] Installing OpenJDK 25..."
+    sudo -u "$SUDO_USER" brew install openjdk@25 || true
+    sudo -u "$SUDO_USER" brew link --force --overwrite openjdk@25 || true
 else
-  echo "[INFO] Skipping Java installation."
+    echo "[INFO] Skipping Java installation."
 fi
 
-java -version || echo "[WARN] Java not installed or not linked."
+sudo -u "$SUDO_USER" java -version || echo "[WARN] Java not installed or not linked."
 
 # ====================================================================
 # INSTALL POSTGRESQL
 # ====================================================================
-if ! command -v psql &>/dev/null; then
-  echo "[INFO] PostgreSQL not found — installing version 17..."
-  brew install postgresql@17
+if ! sudo -u "$SUDO_USER" command -v psql &>/dev/null; then
+    echo "[INFO] PostgreSQL not found — installing version 17..."
+    sudo -u "$SUDO_USER" brew install postgresql@17
 fi
-
 # Make sure PATH includes Postgres binaries
 export PATH="$(brew --prefix postgresql@17)/bin:$PATH"
 
