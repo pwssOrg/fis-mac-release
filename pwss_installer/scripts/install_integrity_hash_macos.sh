@@ -86,44 +86,24 @@ elif [[ -d "/usr/local/bin" ]]; then
 fi
 
 # ====================================================================
-# INSTALL OR UPDATE HOMEBREW
+# JAVA INSTALLATION
 # ====================================================================
-if sudo -u "$REAL_USER" command -v brew >/dev/null 2>&1; then
-    echo "[INFO] Homebrew already installed. Updating..."
-    sudo -u "$REAL_USER" brew update
-else
-    echo "[INFO] Homebrew not found. Installing..."
-    sudo -u "$REAL_USER" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-    # Add Homebrew to PATH for user
-    if [[ -d "/opt/homebrew/bin" ]]; then
-        echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$USER_HOME/.zprofile"
-        sudo -u "$REAL_USER" /bin/bash -c 'eval "$(/opt/homebrew/bin/brew shellenv)"'
-    elif [[ -d "/usr/local/bin" ]]; then
-        echo 'eval "$(/usr/local/bin/brew shellenv)"' >> "$USER_HOME/.zprofile"
-        sudo -u "$REAL_USER" /bin/bash -c 'eval "$(/usr/local/bin/brew shellenv)"'
-    fi
-fi
-
-# ====================================================================
-# INSTALL OPENJDK 25
-# ====================================================================
-if [[ "$INSTALL_JAVA" == "true" ]]; then
+if [[ "${INSTALL_JAVA:-true}" == "true" ]]; then
     echo "[INFO] Installing OpenJDK 25..."
-    sudo -u "$REAL_USER" brew install openjdk@25 || true
-    sudo -u "$REAL_USER" brew link --force --overwrite openjdk@25 || true
+    "$BREW_BIN" install openjdk@25 || true
+    "$BREW_BIN" link --force --overwrite openjdk@25 || true
 else
     echo "[INFO] Skipping Java installation."
 fi
 
-sudo -u "$REAL_USER" java -version || echo "[WARN] Java not installed or not linked."
+java -version || echo "[WARN] Java not installed or not linked."
 
 # ====================================================================
-# INSTALL POSTGRESQL 17
+# INSTALL POSTGRESQL
 # ====================================================================
-if ! sudo -u "$REAL_USER" command -v psql &>/dev/null; then
+if ! command -v psql &>/dev/null; then
     echo "[INFO] PostgreSQL not found — installing version 17..."
-    sudo -u "$REAL_USER" brew install postgresql@17
+    "$BREW_BIN" install postgresql@17
 else
     echo "[INFO] PostgreSQL already installed."
 fi
