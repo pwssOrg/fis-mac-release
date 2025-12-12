@@ -32,7 +32,13 @@ if [ -z "${GITHUB_ACTIONS}" ] || [ "${GITHUB_ACTIONS}" != "true" ]; then
 
 
 
-    echo "Starting PWSS Installation!"
+    ### --- ASK USER FOR DB CREDENTIALS ---
+
+    read -p "Enter database user: " DB_USER
+
+    read -sp "Enter database password: " DB_PASSWORD
+
+    echo ""
 
 else
 
