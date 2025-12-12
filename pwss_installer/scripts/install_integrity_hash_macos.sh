@@ -31,8 +31,8 @@ GITHUB_ACTIONS=false
 if [ -z "${GITHUB_ACTIONS}" ] || [ "${GITHUB_ACTIONS}" != "true" ]; then
 
 
-
-    echo "Starting PWSS Installation!"
+DB_USER="${INSTALLER_USER_INPUT_DB_USER:-defaultuser}"
+DB_PASSWORD="${INSTALLER_USER_INPUT_DB_PASSWORD:-defaultpassword}"
 
 else
 
@@ -44,10 +44,7 @@ else
 
 fi
  
-# Debug print
-DB_USER="${DB_USER:-test_user}"
-# Om DB_PASSWORD inte är satt, använd "ci_password" som default
-DB_PASSWORD="${DB_PASSWORD:-test_password12345!}"
+
 
 echo "DB_USER: $DB_USER"
 DB_NAME="integrity_hash"
