@@ -3,7 +3,7 @@
 
     <title>Database (PSQL) for IntegrityHash Installer</title>
 
-    <!-- Panel för input -->
+    <!-- GUI-panel för användarinmatning -->
     <script>
         <user-input title="Database Configuration" id="dbconfig">
             <text-input 
@@ -20,7 +20,7 @@
         </user-input>
     </script>
 
-   
+    <!-- Val för installation -->
     <choices-outline>
         <line choice="main"/>
     </choices-outline>
@@ -29,5 +29,9 @@
         <pkg-ref id="com.pwss.integrityhash"/>
     </choice>
 
-    <pkg-ref id="com.pwss.integrityhash" version="1.0" />
+    <!-- Referens till component pkg -->
+    <pkg-ref id="com.pwss.integrityhash" version="1.0.0" auth="root">
+        com.pwss.integrityhash.pkg
+    </pkg-ref>
+
 </installer-gui-script>
