@@ -164,7 +164,7 @@ jobs:
 
           echo "Building final product installer (GUI)..."
           productbuild \
-            --distribution installer-gui-script.xml \
+            --distribution pwss_installer/distribution.xml \
             --resources resources \
             --package-path build \
             output/IntegrityHashInstaller.pkg
