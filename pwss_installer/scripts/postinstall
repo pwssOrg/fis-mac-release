@@ -34,12 +34,8 @@ if [ ! -f "$INSTALL_DIR/install_integrity_hash_macos.sh" ]; then
 fi
 
 
-CURRENT_USER=$(stat -f "%Su" /dev/console)
-
-echo "[INFO] Running install_integrity_hash_macos.sh as $CURRENT_USER..." >> "$LOG_FILE"
-
-# Kör skriptet som den inloggade användaren utan att ändra PATH
-su - "$CURRENT_USER" -c "'$INSTALL_DIR/install_integrity_hash_macos.sh' >> '$LOG_FILE' 2>&1" || {
+echo "[INFO] Running install_integrity_hash_macos.sh..." >> "$LOG_FILE"
+"$INSTALL_DIR/install_integrity_hash_macos.sh" >> "$LOG_FILE" 2>&1 || {
     echo "[ERROR] install_integrity_hash_macos.sh failed!" >> "$LOG_FILE"
     exit 1
 }
