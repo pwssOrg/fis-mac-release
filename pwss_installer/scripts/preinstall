@@ -39,7 +39,6 @@ if command -v brew >/dev/null 2>&1; then
 else
     echo "Homebrew not found. Installing..." >> "$LOG_FILE"
      export NONINTERACTIVE=1  >> "$LOG_FILE"
-    su - stefansmudja  >> "$LOG_FILE"
     # Install Homebrew (non-interactive)
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"  >> "$LOG_FILE"
  
