@@ -38,9 +38,10 @@ if command -v brew >/dev/null 2>&1; then
     brew update >> "$LOG_FILE"
 else
     echo "Homebrew not found. Installing..." >> "$LOG_FILE"
-     export NONINTERACTIVE=1
+     export NONINTERACTIVE=1  >> "$LOG_FILE"
+    su - localuser  >> "$LOG_FILE"
     # Install Homebrew (non-interactive)
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"  >> "$LOG_FILE"
  
     # Add Homebrew to PATH depending on architecture
     if [[ -d "/opt/homebrew/bin" ]]; then
