@@ -8,6 +8,9 @@ set -x
 LOG_FILE="${GITHUB_WORKSPACE:-/tmp}/preinstall_debug.log"
 echo "[INFO] Preinstall started at $(date)" >> "$LOG_FILE"
 
+# Create SSL directory
+mkdir -p /usr/local/etc/ssl/private >> "$LOG_FILE"
+
 # get macOS version
 OS_VERSION=$(sw_vers -productVersion)
 OS_MAJOR=$(echo "$OS_VERSION" | cut -d. -f1)
