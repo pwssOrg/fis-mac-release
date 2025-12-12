@@ -29,74 +29,48 @@ fi
 echo "[INFO] macOS version OK, proceeding installation." >> "$LOG_FILE"
 
 # ====================================================================
-# CHECK AND INSTALL HOMEBREW (preinstall)
+# CHECK HOMEBREW
 # ====================================================================
 
-
-if [ -n "${SUDO_USER:-}" ]; then
-    REAL_USER="$SUDO_USER" >> "$LOG_FILE"
+if command -v brew >/dev/null 2>&1; then
+    echo "Homebrew is already installed."
+    echo "Updating Homebrew..." 
+    brew update >> "$LOG_FILE"
 else
-    REAL_USER=$(whoami) >> "$LOG_FILE"
-fi
-
-USER_HOME=$(eval echo "~$REAL_USER")
-echo "[INFO] Installing Homebrew for user: $REAL_USER"
-
-# Kontrollera om brew redan finns
-if sudo -u "$REAL_USER" command -v brew >/dev/null 2>&1; then
-    echo "[INFO] Homebrew already installed. Updating..."
-    sudo -u "$REAL_USER" brew update >> "$LOG_FILE"
-else
-    echo "[INFO] Homebrew not found. Installing..."
-    sudo -u "$REAL_USER" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" >> "$LOG_FILE"
-
-    # Lägg till Homebrew i PATH för användaren
+    echo "Homebrew not found. Installing..." >> "$LOG_FILE"
+ 
+    # Install Homebrew (non-interactive)
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+ 
+    # Add Homebrew to PATH depending on architecture
     if [[ -d "/opt/homebrew/bin" ]]; then
         # Apple Silicon
-        echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$USER_HOME/.zprofile"
-        sudo -u "$REAL_USER" /bin/bash -c 'eval "$(/opt/homebrew/bin/brew shellenv)"'
+        echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+        eval "$(/opt/homebrew/bin/brew shellenv)"
     elif [[ -d "/usr/local/bin" ]]; then
-        # Intel
-        echo 'eval "$(/usr/local/bin/brew shellenv)"' >> "$USER_HOME/.zprofile"
-        sudo -u "$REAL_USER" /bin/bash -c 'eval "$(/usr/local/bin/brew shellenv)"'
+        # Intel mac
+        echo 'eval "$(/usr/local/bin/brew shellenv)"' >> ~/.zprofile
+        eval "$(/usr/local/bin/brew shellenv)"
     fi
-fi
-
- echo "[INFO] Homebrew installed! proceeding installation." >> "$LOG_FILE"
-
-
-# ====================================================================
-# DETERMINE HOME BREW PATH
-# ====================================================================
-BREW_BIN=""
-if [[ -d "/opt/homebrew/bin" ]]; then
-    # Apple Silicon
-    BREW_BIN="/opt/homebrew/bin/brew" >> "$LOG_FILE"
-elif [[ -d "/usr/local/bin" ]]; then
-    # Intel
-    BREW_BIN="/usr/local/bin/brew" >> "$LOG_FILE"
 fi
 
 # ====================================================================
 # JAVA INSTALLATION
 # ====================================================================
-if [[ "${INSTALL_JAVA:-true}" == "true" ]]; then
-    echo "[INFO] Installing OpenJDK 25..." >> "$LOG_FILE"
-    "$BREW_BIN" install openjdk@25 || true
-    "$BREW_BIN" link --force --overwrite openjdk@25 || true
+if [[ "$INSTALL_JAVA" == "true" ]]; then
+  echo "[INFO] Installing OpenJDK 25..." >> "$LOG_FILE"
+  brew install openjdk@25 || true
+  brew link --force --overwrite openjdk@25 || true
 else
-    echo "[INFO] Skipping Java installation."
+  echo "[INFO] Skipping Java installation." >> "$LOG_FILE"
 fi
 
-java -version || echo "[WARN] Java not installed or not linked."
+java -version || echo "[WARN] Java not installed or not linked." >> "$LOG_FILE"
 
 # ====================================================================
 # INSTALL POSTGRESQL
 # ====================================================================
 if ! command -v psql &>/dev/null; then
-    echo "[INFO] PostgreSQL not found — installing version 17..." >> "$LOG_FILE"
-    "$BREW_BIN" install postgresql@17 >> "$LOG_FILE"
-else
-    echo "[INFO] PostgreSQL already installed."
+  echo "[INFO] PostgreSQL not found — installing version 17..." >> "$LOG_FILE"
+  brew install postgresql@17 >> "$LOG_FILE"
 fi
-
