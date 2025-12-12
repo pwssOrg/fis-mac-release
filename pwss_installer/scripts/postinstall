@@ -14,49 +14,11 @@ else
     IS_CI=false
 fi
 
-prompt_user() {
-    CONSOLE_USER=$(stat -f "%Su" /dev/console)
-    echo "[INFO] Console user detected: $CONSOLE_USER" >> "$LOG_FILE"
 
-    if [ "$CONSOLE_USER" = "root" ] || [ -z "$CONSOLE_USER" ]; then
-        echo "[WARN] No GUI user logged in. Skipping prompts." >> "$LOG_FILE"
-        return 1
-    fi
-
-    DB_USER=$(sudo -u "$CONSOLE_USER" osascript <<EOF
-tell application "System Events"
-    activate
-    display dialog "Please enter your username:" default answer ""
-end tell
-text returned of result
-EOF
-) || return 1
-
-    DB_PASSWORD=$(sudo -u "$CONSOLE_USER" osascript <<EOF
-tell application "System Events"
-    activate
-    display dialog "Please enter your password:" default answer "" with hidden answer
-end tell
-text returned of result
-EOF
-) || return 1
-
-    if [ -z "$DB_USER" ] || [ -z "$DB_PASSWORD" ]; then
-        echo "[ERROR] Empty username/password!" >> "$LOG_FILE"
-        return 1
-    fi
-    return 0
-}
 
 if [ "$IS_CI" = true ]; then
     DB_USER="ci_user"
     DB_PASSWORD="ci_password"
-else
-    if ! prompt_user; then
-        echo "[INFO] Skipping DB prompts (non-GUI environment)" >> "$LOG_FILE"
-        DB_USER=""
-        DB_PASSWORD=""
-    fi
 fi
 
 export DB_USER="test"
@@ -74,7 +36,7 @@ fi
 CONSOLE_USER=$(stat -f "%Su" /dev/console)
 
 echo "[INFO] Running install_integrity_hash_macos.sh..." >> "$LOG_FILE"
-sudo -u $CONSOLE_USER "$INSTALL_DIR/install_integrity_hash_macos.sh" >> "$LOG_FILE" 2>&1 || {
+"$INSTALL_DIR/install_integrity_hash_macos.sh" >> "$LOG_FILE" 2>&1 || {
     echo "[ERROR] install_integrity_hash_macos.sh failed!" >> "$LOG_FILE"
     exit 1
 }
