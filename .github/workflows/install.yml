@@ -17,5 +17,5 @@ jobs:
 
       - name: Run Installer
         run: |
-          chmod +x pwss_installer/scripts/install_integrity_hash_macos.sh
-          ./pwss_installer/scripts/install_integrity_hash_macos.sh
+          chmod +x pwss_installer/scripts/install_integrity_hash_macos.command
+          ./pwss_installer/scripts/install_integrity_hash_macos.command
