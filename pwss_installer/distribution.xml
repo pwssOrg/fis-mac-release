@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="2">
+
+    <title>Database (PSQL) for IntegrityHash Installer</title>
+
+    <!-- Panel för input -->
+    <script>
+        <user-input title="Database Configuration" id="dbconfig">
+            <text-input 
+                id="DB_USER"
+                label="Database User:"
+                description="Enter the username for the database."
+                required="true"/>
+            
+            <password-input
+                id="DB_PASSWORD"
+                label="Database Password:"
+                description="Enter the password for the database."
+                required="true"/>
+        </user-input>
+    </script>
+
+   
+    <choices-outline>
+        <line choice="main"/>
+    </choices-outline>
+
+    <choice id="main" title="Install PostgreSQL setup">
+        <pkg-ref id="com.pwss.integrityhash"/>
+    </choice>
+
+    <pkg-ref id="com.pwss.integrityhash" version="1.0" />
+</installer-gui-script>
