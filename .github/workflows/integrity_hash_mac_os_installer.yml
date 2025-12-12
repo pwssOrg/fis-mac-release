@@ -189,6 +189,7 @@ jobs:
 
 # 📁 Repository structure that the workflow is based on
 # pwss_installer/
+# ├── distribution.xml                 ← distribution file for productbuild
 # ├── scripts/                         
 # │   ├── install_integrity_hash_macos.sh
 # │   ├── integrity_hash_enviroment
