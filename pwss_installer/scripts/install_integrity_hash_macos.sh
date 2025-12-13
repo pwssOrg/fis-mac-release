@@ -61,8 +61,7 @@ echo "==== PKG INSTALL START ===="
 # --- 1. Hitta inloggad användare ---
 USER_ON_CONSOLE=$(stat -f "%Su" /dev/console)
 UID_ON_CONSOLE=$(id -u "$USER_ON_CONSOLE")
-USER_HOME=$(dscl . -read /Users/$USER_ON_CONSOLE NFSHomeDirectory | awk
-'{print $2}')
+USER_HOME=$(dscl . -read /Users/$USER_ON_CONSOLE NFSHomeDirectory | cut -d ' ' -f 2)
 echo "User: $USER_ON_CONSOLE ($UID_ON_CONSOLE)" 
 echo "Home: $USER_HOME" 
 export USER="$USER_ON_CONSOLE"
