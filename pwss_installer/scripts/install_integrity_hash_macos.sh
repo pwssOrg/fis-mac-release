@@ -57,14 +57,14 @@ INSTALL_JAVA="${INSTALL_JAVA:-true}"
 echo "[INFO] Database user: $DB_USER"
 echo "[INFO] Java installation enabled: $INSTALL_JAVA"
 
-echo "==== PKG INSTALL START ====" > "$LOG"
+echo "==== PKG INSTALL START ====" > "$LOG_FILE"
 # --- 1. Hitta inloggad användare ---
 USER_ON_CONSOLE=$(stat -f "%Su" /dev/console)
 UID_ON_CONSOLE=$(id -u "$USER_ON_CONSOLE")
 USER_HOME=$(dscl . -read /Users/$USER_ON_CONSOLE NFSHomeDirectory | awk
 '{print $2}')
-echo "User: $USER_ON_CONSOLE ($UID_ON_CONSOLE)" >> "$LOG"
-echo "Home: $USER_HOME" >> "$LOG"
+echo "User: $USER_ON_CONSOLE ($UID_ON_CONSOLE)" >> "$LOG_FILE"
+echo "Home: $USER_HOME" >> "$LOG_FILE"
 export USER="$USER_ON_CONSOLE"
 export HOME="$USER_HOME"
 export LOGNAME="$USER_ON_CONSOLE"
@@ -75,34 +75,34 @@ export PATH="$PATH_ARM:$PATH_INTEL:/usr/bin:/bin:/usr/sbin:/sbin"
 # --- 3. Kolla om brew redan finns ---
 BREW=$(command -v brew)
 if [ -z "$BREW" ]; then
-echo "Homebrew saknas — installerar..." >> "$LOG"
+echo "Homebrew saknas — installerar..." >> "$LOG_FILE"
 # Homebrew-installationsscript
 BREW_INSTALL_CMD='/bin/bash -c "$(curl -fsSL
 https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
 # Kör installation som användaren (INTE root!)
-launchctl asuser "$UID_ON_CONSOLE" sh -c "$BREW_INSTALL_CMD" >> "$LOG"
+launchctl asuser "$UID_ON_CONSOLE" sh -c "$BREW_INSTALL_CMD" >> "$LOG_FILE"
 2>&1
 # Sök igen efter installation
 BREW=$(command -v brew)
 else
-echo "Homebrew finns redan: $BREW" >> "$LOG"
+echo "Homebrew finns redan: $BREW" >> "$LOG_FILE"
 fi
 if [ -z "$BREW" ]; then
-echo "Kritisk: Homebrew kunde inte installeras" >> "$LOG"
+echo "Kritisk: Homebrew kunde inte installeras" >> "$LOG_FILE"
 exit 1
 fi
 # --- 4. Homebrew miljövariabler ---
 export HOMEBREW_NO_AUTO_UPDATE=1
 export HOMEBREW_NO_INSTALL_UPGRADE=1
 export HOMEBREW_NO_ENV_HINTS=1
-echo "Brew command: $BREW" >> "$LOG"
+echo "Brew command: $BREW" >> "$LOG_FILE"
 # --- 5. Installera Java 25 ---
-echo "Installerar Java 25..." >> "$LOG"
-launchctl asuser "$UID_ON_CONSOLE" "$BREW" install openjdk@25 >> "$LOG" 2>&1
+echo "Installerar Java 25..." >> "$LOG_FILE"
+launchctl asuser "$UID_ON_CONSOLE" "$BREW" install openjdk@25 >> "$LOG_FILE" 2>&1
 # --- 6. Installera PostgreSQL 17 ---
-echo "Installerar PostgreSQL 17..." >> "$LOG"
-launchctl asuser "$UID_ON_CONSOLE" "$BREW" install postgresql@17 >> "$LOG" 2>&1
-echo "==== KLART ====" >> "$LOG"
+echo "Installerar PostgreSQL 17..." >> "$LOG_FILE"
+launchctl asuser "$UID_ON_CONSOLE" "$BREW" install postgresql@17 >> "$LOG_FILE" 2>&1
+echo "==== KLART ====" >> "$LOG_FILE"
 
 
 
