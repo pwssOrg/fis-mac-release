@@ -57,6 +57,53 @@ INSTALL_JAVA="${INSTALL_JAVA:-true}"
 echo "[INFO] Database user: $DB_USER"
 echo "[INFO] Java installation enabled: $INSTALL_JAVA"
 
+# ====================================================================
+# CHECK HOMEBREW
+# ====================================================================
+
+if command -v brew >/dev/null 2>&1; then
+    echo "Homebrew is already installed."
+    echo "Updating Homebrew..."
+    brew update
+else
+    echo "Homebrew not found. Installing..."
+ 
+    # Install Homebrew (non-interactive)
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+ 
+    # Add Homebrew to PATH depending on architecture
+    if [[ -d "/opt/homebrew/bin" ]]; then
+        # Apple Silicon
+        echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [[ -d "/usr/local/bin" ]]; then
+        # Intel mac
+        echo 'eval "$(/usr/local/bin/brew shellenv)"' >> ~/.zprofile
+        eval "$(/usr/local/bin/brew shellenv)"
+    fi
+fi
+
+# ====================================================================
+# JAVA INSTALLATION
+# ====================================================================
+if [[ "$INSTALL_JAVA" == "true" ]]; then
+  echo "[INFO] Installing OpenJDK 25..."
+  brew install openjdk@25 || true
+  brew link --force --overwrite openjdk@25 || true
+else
+  echo "[INFO] Skipping Java installation."
+fi
+
+java -version || echo "[WARN] Java not installed or not linked."
+
+# ====================================================================
+# INSTALL POSTGRESQL
+# ====================================================================
+if ! command -v psql &>/dev/null; then
+  echo "[INFO] PostgreSQL not found — installing version 17..."
+  brew install postgresql@17
+fi
+
 # Make sure PATH includes Postgres binaries
 export PATH="$(brew --prefix postgresql@17)/bin:$PATH"
 
