@@ -57,52 +57,54 @@ INSTALL_JAVA="${INSTALL_JAVA:-true}"
 echo "[INFO] Database user: $DB_USER"
 echo "[INFO] Java installation enabled: $INSTALL_JAVA"
 
-# ====================================================================
-# CHECK HOMEBREW
-# ====================================================================
-
-if command -v brew >/dev/null 2>&1; then
-    echo "Homebrew is already installed."
-    echo "Updating Homebrew..."
-    brew update
+echo "==== PKG INSTALL START ====" > "$LOG"
+# --- 1. Hitta inloggad användare ---
+USER_ON_CONSOLE=$(stat -f "%Su" /dev/console)
+UID_ON_CONSOLE=$(id -u "$USER_ON_CONSOLE")
+USER_HOME=$(dscl . -read /Users/$USER_ON_CONSOLE NFSHomeDirectory | awk
+'{print $2}')
+echo "User: $USER_ON_CONSOLE ($UID_ON_CONSOLE)" >> "$LOG"
+echo "Home: $USER_HOME" >> "$LOG"
+export USER="$USER_ON_CONSOLE"
+export HOME="$USER_HOME"
+export LOGNAME="$USER_ON_CONSOLE"
+# --- 2. PATH för Homebrew ---
+PATH_ARM="/opt/homebrew/bin:/opt/homebrew/sbin"
+PATH_INTEL="/usr/local/bin:/usr/local/sbin"
+export PATH="$PATH_ARM:$PATH_INTEL:/usr/bin:/bin:/usr/sbin:/sbin"
+# --- 3. Kolla om brew redan finns ---
+BREW=$(command -v brew)
+if [ -z "$BREW" ]; then
+echo "Homebrew saknas — installerar..." >> "$LOG"
+# Homebrew-installationsscript
+BREW_INSTALL_CMD='/bin/bash -c "$(curl -fsSL
+https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+# Kör installation som användaren (INTE root!)
+launchctl asuser "$UID_ON_CONSOLE" sh -c "$BREW_INSTALL_CMD" >> "$LOG"
+2>&1
+# Sök igen efter installation
+BREW=$(command -v brew)
 else
-    echo "Homebrew not found. Installing..."
- 
-    # Install Homebrew (non-interactive)
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
- 
-    # Add Homebrew to PATH depending on architecture
-    if [[ -d "/opt/homebrew/bin" ]]; then
-        # Apple Silicon
-        echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
-        eval "$(/opt/homebrew/bin/brew shellenv)"
-    elif [[ -d "/usr/local/bin" ]]; then
-        # Intel mac
-        echo 'eval "$(/usr/local/bin/brew shellenv)"' >> ~/.zprofile
-        eval "$(/usr/local/bin/brew shellenv)"
-    fi
+echo "Homebrew finns redan: $BREW" >> "$LOG"
 fi
-
-# ====================================================================
-# JAVA INSTALLATION
-# ====================================================================
-if [[ "$INSTALL_JAVA" == "true" ]]; then
-  echo "[INFO] Installing OpenJDK 25..."
-  brew install openjdk@25 || true
-  brew link --force --overwrite openjdk@25 || true
-else
-  echo "[INFO] Skipping Java installation."
+if [ -z "$BREW" ]; then
+echo "Kritisk: Homebrew kunde inte installeras" >> "$LOG"
+exit 1
 fi
+# --- 4. Homebrew miljövariabler ---
+export HOMEBREW_NO_AUTO_UPDATE=1
+export HOMEBREW_NO_INSTALL_UPGRADE=1
+export HOMEBREW_NO_ENV_HINTS=1
+echo "Brew command: $BREW" >> "$LOG"
+# --- 5. Installera Java 25 ---
+echo "Installerar Java 25..." >> "$LOG"
+launchctl asuser "$UID_ON_CONSOLE" "$BREW" install openjdk@25 >> "$LOG" 2>&1
+# --- 6. Installera PostgreSQL 17 ---
+echo "Installerar PostgreSQL 17..." >> "$LOG"
+launchctl asuser "$UID_ON_CONSOLE" "$BREW" install postgresql@17 >> "$LOG" 2>&1
+echo "==== KLART ====" >> "$LOG"
 
-java -version || echo "[WARN] Java not installed or not linked."
 
-# ====================================================================
-# INSTALL POSTGRESQL
-# ====================================================================
-if ! command -v psql &>/dev/null; then
-  echo "[INFO] PostgreSQL not found — installing version 17..."
-  brew install postgresql@17
-fi
 
 # Make sure PATH includes Postgres binaries
 export PATH="$(brew --prefix postgresql@17)/bin:$PATH"
