@@ -57,7 +57,7 @@ INSTALL_JAVA="${INSTALL_JAVA:-true}"
 echo "[INFO] Database user: $DB_USER"
 echo "[INFO] Java installation enabled: $INSTALL_JAVA"
 
-echo "==== PKG INSTALL START ====" > "$LOG_FILE"
+echo "==== PKG INSTALL START ====" 
 # --- 1. Hitta inloggad användare ---
 USER_ON_CONSOLE=$(stat -f "%Su" /dev/console)
 UID_ON_CONSOLE=$(id -u "$USER_ON_CONSOLE")
