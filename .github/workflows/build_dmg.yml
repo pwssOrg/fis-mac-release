@@ -111,3 +111,4 @@ jobs:
         with:
           name: IntegrityHash.dmg
           path: IntegrityHash.dmg
+          retention-days: 7
