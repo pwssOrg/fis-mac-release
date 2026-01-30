@@ -168,7 +168,7 @@ jobs:
         with:
           name: IntegrityHashInstaller
           path: IntegrityHashInstaller.pkg
-           retention-days: 7
+          retention-days: 7
 
 # 📁 Repository structure that the workflow is based on
 # pwss_installer/
