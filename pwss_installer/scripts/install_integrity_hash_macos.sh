@@ -189,8 +189,8 @@ chmod +x pwss_installer/scripts/integrity_hash_enviroment || true
 # ====================================================================
 echo "[INFO] Running environment setup script..."
 # Use GitHub secrets if available, otherwise fall back to defaults
-TRUSTSTORE="${TRUSTSTORE_FIS_GUI:-mock_truststore}"
-SSL_FILE="${ssl_file_integrity_scanner:-mock_ssl}"
+TRUSTSTORE="fklkfgKek"
+SSL_FILE="Y_VYgqCLfvg9Q"
 
 bash pwss_installer/scripts/integrity_hash_enviroment "$DB_USER" "$DB_PASSWORD" "$TRUSTSTORE" "$SSL_FILE"
 
