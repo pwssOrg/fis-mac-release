@@ -17,7 +17,7 @@ jobs:
       - name: Download JAR files from another repository
         run: |
           curl -L -o integrity_hash-1.2.3.jar https://github.com/pwssOrg/File-Integrity-GUI/releases/download/v1.2.3/integrity_hash-1.2.3.jar
-          curl -L -o File-Integrity-Scanner-1.8.5.jar https://github.com/pwssOrg/File-Integrity-Scanner/releases/download/v1.8.5/File-Integrity-Scanner-1.8.5.jar
+          curl -L -o File-Integrity-Scanner-1.9.jar https://github.com/pwssOrg/File-Integrity-Scanner/releases/download/v1.9/File-Integrity-Scanner-1.9.jar
 
 
       - name: Verify SHA256 hash for integrity_hash-1.2.3
@@ -36,13 +36,13 @@ jobs:
             echo "SHA256 hash for jar1.jar is valid"
           fi
 
-      - name: Verify SHA256 hash for File-Integrity-Scanner-1.8.5
+      - name: Verify SHA256 hash for File-Integrity-Scanner-1.9
         run: |
           # Expected SHA256 hash of jar2.jar (replace with the actual expected hash)
-          expected_hash="ae8b2900e402a24268c5b1e31c49f1e613dfc3c27013bc98851d9dcfe3b762be"
+          expected_hash="6680617e08b280ce3912f5ffa6929693cb120956f78263f6438c5bc9c2a8e5c8"
           
           # Calculate the actual SHA256 hash of the downloaded jar file
-          actual_hash=$(sha256sum File-Integrity-Scanner-1.8.5.jar | awk '{print $1}')
+          actual_hash=$(sha256sum File-Integrity-Scanner-1.9.jar | awk '{print $1}')
           
           # Compare the actual and expected hashes
           if [ "$actual_hash" != "$expected_hash" ]; then
@@ -73,8 +73,8 @@ jobs:
           chmod +x IntegrityHash.app/Contents/Resources/frontend/integrity_hash-1.2.3.jar
 
           # Copy Backend Jar into app folder
-          cp File-Integrity-Scanner-1.8.5.jar IntegrityHash.app/Contents/Resources/local_backend/
-          chmod +x IntegrityHash.app/Contents/Resources/local_backend/File-Integrity-Scanner-1.8.5.jar
+          cp File-Integrity-Scanner-1.9.jar IntegrityHash.app/Contents/Resources/local_backend/
+          chmod +x IntegrityHash.app/Contents/Resources/local_backend/File-Integrity-Scanner-1.9.jar
           
           # Copy icon for app
           cp file_integrity_scanner_app/MyIcon.icns IntegrityHash.app/Contents/Resources/MyIcon.icns
@@ -89,13 +89,13 @@ jobs:
           <key>CFBundleIdentifier</key>
           <string>org.pwss.integrityhash</string>
           <key>CFBundleVersion</key>
-          <string>1.5</string>
+          <string>1.6</string>
           <key>CFBundleExecutable</key>
           <string>IntegrityHash</string>
           <key>CFBundleIconFile</key>
           <string>MyIcon</string>
           <key>CFBundleVersion</key>
-          <string>1.5</string>
+          <string>1.6</string>
           </dict>
           </plist>
           EOF
