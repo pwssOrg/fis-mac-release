@@ -16,17 +16,17 @@ jobs:
 
       - name: Download JAR files from another repository
         run: |
-          curl -L -o integrity_hash-1.2.2.jar https://github.com/pwssOrg/File-Integrity-GUI/releases/download/v1.2.2/integrity_hash-1.2.2.jar
-          curl -L -o File-Integrity-Scanner-1.8.4.jar https://github.com/pwssOrg/File-Integrity-Scanner/releases/download/v1.8.4/File-Integrity-Scanner-1.8.4.jar
+          curl -L -o integrity_hash-1.2.3.jar https://github.com/pwssOrg/File-Integrity-GUI/releases/download/v1.2.3/integrity_hash-1.2.3.jar
+          curl -L -o File-Integrity-Scanner-1.8.5.jar https://github.com/pwssOrg/File-Integrity-Scanner/releases/download/v1.8.5/File-Integrity-Scanner-1.8.5.jar
 
 
-      - name: Verify SHA256 hash for integrity_hash-1.2.2
+      - name: Verify SHA256 hash for integrity_hash-1.2.3
         run: |
           # Expected SHA256 hash of jar1.jar (replace with the actual expected hash)
-          expected_hash="b459cde2ec1ca24c46cc987c6fb3ff314fb36b524872fdf08a3c5c1a88ac43e2"
+          expected_hash="e04ca51dde652cc70db6cdb96e0baca591e3bdc76dafd117cb21804a23c9e5d8"
           
           # Calculate the actual SHA256 hash of the downloaded jar file
-          actual_hash=$(sha256sum integrity_hash-1.2.2.jar | awk '{print $1}')
+          actual_hash=$(sha256sum integrity_hash-1.2.3.jar | awk '{print $1}')
           
           # Compare the actual and expected hashes
           if [ "$actual_hash" != "$expected_hash" ]; then
@@ -36,13 +36,13 @@ jobs:
             echo "SHA256 hash for jar1.jar is valid"
           fi
 
-      - name: Verify SHA256 hash for File-Integrity-Scanner-1.8.4
+      - name: Verify SHA256 hash for File-Integrity-Scanner-1.8.5
         run: |
           # Expected SHA256 hash of jar2.jar (replace with the actual expected hash)
-          expected_hash="59279050c553d5665cf24745426c387bc19baf5aff414027ffecae4e4b1b0610"
+          expected_hash="ae8b2900e402a24268c5b1e31c49f1e613dfc3c27013bc98851d9dcfe3b762be"
           
           # Calculate the actual SHA256 hash of the downloaded jar file
-          actual_hash=$(sha256sum File-Integrity-Scanner-1.8.4.jar | awk '{print $1}')
+          actual_hash=$(sha256sum File-Integrity-Scanner-1.8.5.jar | awk '{print $1}')
           
           # Compare the actual and expected hashes
           if [ "$actual_hash" != "$expected_hash" ]; then
@@ -69,12 +69,12 @@ jobs:
           cp -r file_integrity_scanner_app/app_storage IntegrityHash.app/Contents/Resources/frontend/
 
           # Copy Frontend Jar into app folder
-          cp integrity_hash-1.2.2.jar IntegrityHash.app/Contents/Resources/frontend/
-          chmod +x IntegrityHash.app/Contents/Resources/frontend/integrity_hash-1.2.2.jar
+          cp integrity_hash-1.2.3.jar IntegrityHash.app/Contents/Resources/frontend/
+          chmod +x IntegrityHash.app/Contents/Resources/frontend/integrity_hash-1.2.3.jar
 
           # Copy Backend Jar into app folder
-          cp File-Integrity-Scanner-1.8.4.jar IntegrityHash.app/Contents/Resources/local_backend/
-          chmod +x IntegrityHash.app/Contents/Resources/local_backend/File-Integrity-Scanner-1.8.4.jar
+          cp File-Integrity-Scanner-1.8.5.jar IntegrityHash.app/Contents/Resources/local_backend/
+          chmod +x IntegrityHash.app/Contents/Resources/local_backend/File-Integrity-Scanner-1.8.5.jar
           
           # Copy icon for app
           cp file_integrity_scanner_app/MyIcon.icns IntegrityHash.app/Contents/Resources/MyIcon.icns
@@ -89,13 +89,13 @@ jobs:
           <key>CFBundleIdentifier</key>
           <string>org.pwss.integrityhash</string>
           <key>CFBundleVersion</key>
-          <string>1.4</string>
+          <string>1.5</string>
           <key>CFBundleExecutable</key>
           <string>IntegrityHash</string>
           <key>CFBundleIconFile</key>
           <string>MyIcon</string>
           <key>CFBundleVersion</key>
-          <string>1.4</string>
+          <string>1.5</string>
           </dict>
           </plist>
           EOF
