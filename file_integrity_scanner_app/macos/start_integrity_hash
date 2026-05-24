@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 << Script_Information
-Updated: Januari-2026
+Updated: May-2026
 Purpose: Start Integrity Hash app and local File-Integrity Scanner backend on macOS
 Script_Information
 
@@ -63,8 +63,8 @@ start_local_server_in_background() {
     fi
 
     # Check file integrity of the backend JAR file
-    backend_file_path="${integrity_hash_app_folder}/Resources/local_backend/File-Integrity-Scanner-1.8.3.jar"
-    backend_expected_hash="671976bb694e0d9f3c5f24aca69133b572fc42ee474a8b58fdceb8f24c2ccbc0"
+    backend_file_path="${integrity_hash_app_folder}/Resources/local_backend/File-Integrity-Scanner-1.9.jar"
+    backend_expected_hash="6680617e08b280ce3912f5ffa6929693cb120956f78263f6438c5bc9c2a8e5c8"
     check_file_hash "$backend_file_path" "$backend_expected_hash"
 
     # Start the backend Java application
@@ -77,8 +77,8 @@ start_local_server_in_background() {
 # Function to start the frontend app
 start_frontend_app() {
     # Check file integrity of the frontend JAR file
-    frontend_file_path="${integrity_hash_app_folder}/Resources/frontend/integrity_hash-1.2.1.jar"
-    frontend_expected_hash="509a812d2b11314758d8fd6d7dbdac84f8e86e02fbf2a19426159223f0c58760"
+    frontend_file_path="${integrity_hash_app_folder}/Resources/frontend/integrity_hash-1.2.3.jar"
+    frontend_expected_hash="e04ca51dde652cc70db6cdb96e0baca591e3bdc76dafd117cb21804a23c9e5d8"
     check_file_hash "$frontend_file_path" "$frontend_expected_hash"
 
     # Start the frontend Java app
